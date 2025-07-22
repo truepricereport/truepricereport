@@ -49,8 +49,11 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
   const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
 
   return (
-    <div className="bg-[#cecece] min-h-[80vh] flex items-center justify-center px-6 py-20">
-      <div className="bg-white rounded-2xl p-12 max-w-2xl w-full">
+    <div
+      className="min-h-[80vh] flex items-center justify-center px-6 py-20 bg-cover bg-center"
+      style={{ backgroundImage: `url('https://truepricereport.com/wp-content/plugins/mts-real-estate-equity/public/images/soldbybrenkus_bg.jpeg')` }}
+    >
+      <div className="bg-white bg-opacity-90 rounded-2xl p-12 max-w-2xl w-full">
         <div className="text-center mb-8">
           <Image
             src="https://ext.same-assets.com/2983890396/2132483316.png"

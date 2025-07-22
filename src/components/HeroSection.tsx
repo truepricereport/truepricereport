@@ -51,8 +51,11 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
   }
 
   return (
-    <section className="bg-[#767676] min-h-[80vh] flex items-center justify-center px-6 py-20">
-      <div className="bg-white rounded-2xl p-12 max-w-2xl w-full text-center shadow-lg">
+    <section
+      className="min-h-[80vh] flex items-center justify-center px-6 py-20 bg-cover bg-center"
+      style={{ backgroundImage: `url('https://truepricereport.com/wp-content/plugins/mts-real-estate-equity/public/images/soldbybrenkus_bg.jpeg')` }}
+    >
+      <div className="bg-white bg-opacity-90 rounded-2xl p-12 max-w-2xl w-full text-center shadow-lg">
         <div className="mb-8">
           <Image
             src="https://ext.same-assets.com/2983890396/2132483316.png"
