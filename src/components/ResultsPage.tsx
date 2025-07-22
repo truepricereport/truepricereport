@@ -47,8 +47,11 @@ export function ResultsPage({ formData }: ResultsPageProps) {
   const estimatedValue = "$450,000" // This would typically come from an API
 
   return (
-    <div className="bg-[#cecece] min-h-[80vh] py-16 px-6">
-      <div className="max-w-6xl mx-auto">
+    <div
+      className="min-h-[80vh] py-16 px-6 bg-cover bg-center"
+      style={{ backgroundImage: `url('https://truepricereport.com/wp-content/plugins/mts-real-estate-equity/public/images/soldbybrenkus_bg.jpeg')` }}
+    >
+      <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {greeting} {firstName}
