@@ -25,9 +25,10 @@ interface Step1Props {
   onNext: () => void
   selectedAddress: string
   updateSelectedAddress: (address: string) => void
+  onStep1NextSubmit: (addressData: Step1Data) => void // New prop for Step 1 API call
 }
 
-export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress }: Step1Props) {
+export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit }: Step1Props) {
   const [localData, setLocalData] = useState<Step1Data>(() => ({
     streetAddress: selectedAddress || formData.step1.streetAddress || "",
     city: formData.step1.city || "",
@@ -49,8 +50,12 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
   }
 
   const handleNext = () => {
+    console.log("Step 1 Next button clicked. Triggering onStep1NextSubmit.")
+    onStep1NextSubmit(localData) // Call the new prop with current Step 1 data
     onNext()
   }
+
+  const isFormValid = localData.streetAddress && localData.city && localData.state && localData.zipcode;
 
   return (
     <div
@@ -153,7 +158,8 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
 
         <Button
           onClick={handleNext}
-          className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-8 py-3 rounded-md font-medium mt-8 w-full"
+          disabled={!isFormValid}
+          className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-8 py-3 rounded-md font-medium mt-8 w-full disabled:bg-gray-400"
         >
           Next
         </Button>

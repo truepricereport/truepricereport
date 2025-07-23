@@ -27,9 +27,10 @@ interface FormData {
 
 interface ResultsPageProps {
   formData: FormData
+  onUpdateDescription: (descriptionPart: string) => void // New prop for updating description
 }
 
-export function ResultsPage({ formData }: ResultsPageProps) {
+export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps) {
   const firstName = formData.step3?.firstName || "Friend"
   const address = formData.step1?.streetAddress || "Your Property"
 
@@ -45,6 +46,21 @@ export function ResultsPage({ formData }: ResultsPageProps) {
   }
 
   const estimatedValue = "$450,000" // This would typically come from an API
+
+  const handleCashOfferClick = () => {
+    console.log("Get a Cash Offer button clicked.")
+    onUpdateDescription("I am interested in getting a Cash Offer.")
+  }
+
+  const handleRefinanceClick = () => {
+    console.log("Refinance button clicked.")
+    onUpdateDescription("I am interested in Refinancing.")
+  }
+
+  const handleContactAgentClick = () => {
+    console.log("Contact Real Estate Agent button clicked.")
+    onUpdateDescription("I am interested in contacting a Real Estate Agent.")
+  }
 
   return (
     <div
@@ -80,19 +96,19 @@ export function ResultsPage({ formData }: ResultsPageProps) {
             <div className="space-y-3">
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                onClick={() => alert("Get a Cash Offer feature would be implemented here")}
+                onClick={handleCashOfferClick}
               >
                 Get a Cash Offer
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                onClick={() => alert("Refinance feature would be implemented here")}
+                onClick={handleRefinanceClick}
               >
                 Refinance
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                onClick={() => alert("Contact Real Estate Agent feature would be implemented here")}
+                onClick={handleContactAgentClick}
               >
                 Contact Real Estate Agent
               </Button>
