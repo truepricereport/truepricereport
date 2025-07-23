@@ -58,6 +58,7 @@ export function MainFlow() {
     }
   })
   const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null) // To store email and initial description
+  const [estimatedValue, setEstimatedValue] = useState<string | null>(null); // To store the estimated value from Step 1 mock API
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...data }))
@@ -102,18 +103,23 @@ export function MainFlow() {
   const sendLeadToBrivity = async (payload: any, isUpdate: boolean = false) => {
     console.log(`Sending lead data to Brivity (isUpdate: ${isUpdate}):`, payload)
     try {
-      const response = await fetch("https://secure.brivity.com/api/v2/leads", {
+      const awsApiGatewayUrl = process.env.NEXT_PUBLIC_AWS_API_GATEWAY_URL;
+      if (!awsApiGatewayUrl) {
+        console.error("AWS API Gateway URL is not set. Please check NEXT_PUBLIC_AWS_API_GATEWAY_URL environment variable.");
+        return { success: false, error: "AWS API Gateway URL not configured." };
+      }
+
+      // Actual fetch call to AWS API Gateway proxy
+      const response = await fetch(awsApiGatewayUrl, {
         method: "POST",
         headers: {
-          "Accept": "application/json",
           "Content-Type": "application/json",
-          "Authorization": `Token token=${process.env.NEXT_PUBLIC_BRIVITY_API_TOKEN}` // Ensure this env var is set
         },
         body: JSON.stringify(payload)
-      })
+      });
 
       const data = await response.json()
-      console.log("Brivity API Response:", data)
+      console.log("Brivity API Response via Proxy:", data)
 
       if (response.ok) {
         // For initial lead creation (not updates or Step 1 submits where email might not be available yet)
@@ -127,30 +133,32 @@ export function MainFlow() {
         }
         return { success: true, data }
       } else {
-        console.error("Brivity API Error:", data)
+        console.error("Brivity API Error via Proxy:", data)
         return { success: false, error: data }
       }
     } catch (error) {
-      console.error("Error sending lead to Brivity:", error)
+      console.error("Error sending lead to Brivity via Proxy:", error)
       return { success: false, error }
     }
   }
 
   const handleStep1NextSubmit = async (addressData: FormData['step1']) => {
-    console.log("Step 1 'Next' button data:", addressData)
-    const payload = {
-      lead_type: "lead from webpage trueprice report",
-      source: "TruepriceReport",
-      street_address: addressData.streetAddress,
-      city: addressData.city,
-      locality: addressData.state,
-      postal_code: addressData.zipcode,
-      country: addressData.country,
-      description: "Address provided on Step 1"
+    console.log("Attempting to fetch property info for Step 1 'Next' button:", addressData);
+    // Mock API call to get property information (only price estimate)
+    try {
+      const mockPropertyInfo = {
+        priceEstimate: `$${(Math.floor(Math.random() * 500) + 100) * 1000}` // Random price between $100,000 and $600,000 in thousands
+      };
+
+      console.log("Mock Property Info API Response:", mockPropertyInfo);
+      setEstimatedValue(mockPropertyInfo.priceEstimate); // Store the estimated value
+
+      return { success: true, data: mockPropertyInfo };
+    } catch (error) {
+      console.error("Error fetching mock property info:", error);
+      return { success: false, error };
     }
-    // We are not expecting an email here yet, so we don't store leadInfo
-    await sendLeadToBrivity(payload, false) // Consider this an initial lead capture
-  }
+  };
 
   const handleFinalSubmit = async () => {
     console.log("Final form data:", formData)
@@ -158,6 +166,7 @@ export function MainFlow() {
     const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}`
 
     const payload = {
+      // primary_agent_id is now handled securely by the Lambda function
       lead_type: "lead from webpage trueprice report",
       status: "new",
       source: "TruepriceReport",
@@ -185,6 +194,7 @@ export function MainFlow() {
     if (leadInfo) {
       const updatedDescription = `${leadInfo.initialDescription}. ${newDescriptionPart}`
       const payload = {
+        // primary_agent_id is now handled securely by the Lambda function
         email: leadInfo.email,
         description: updatedDescription
       }
@@ -201,6 +211,10 @@ export function MainFlow() {
     }
   }
 
+  const goToStep2 = () => setCurrentStep("step2")
+  const goToStep3 = () => setCurrentStep("step3")
+  const goToStep1 = () => setCurrentStep("step1")
+  const goToStep2FromStep3 = () => setCurrentStep("step2")
 
   switch (currentStep) {
     case "hero":
@@ -214,7 +228,7 @@ export function MainFlow() {
           onNext={goToStep2}
           selectedAddress={formData.selectedAddress}
           updateSelectedAddress={updateSelectedAddress}
-          onStep1NextSubmit={handleStep1NextSubmit} // Pass the new handler
+          onStep1NextSubmit={handleStep1NextSubmit}
         />
       )
 
@@ -241,14 +255,9 @@ export function MainFlow() {
       )
 
     case "results":
-      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} />
+      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} estimatedValue={estimatedValue} />
 
     default:
       return <HeroSection onAddressSubmit={handleAddressSubmit} />
   }
 }
-
-const goToStep2 = () => setCurrentStep("step2")
-const goToStep3 = () => setCurrentStep("step3")
-const goToStep1 = () => setCurrentStep("step1")
-const goToStep2FromStep3 = () => setCurrentStep("step2")

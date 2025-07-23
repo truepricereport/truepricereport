@@ -28,9 +28,10 @@ interface FormData {
 interface ResultsPageProps {
   formData: FormData
   onUpdateDescription: (descriptionPart: string) => void // New prop for updating description
+  estimatedValue: string | null; // New prop for estimated value
 }
 
-export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps) {
+export function ResultsPage({ formData, onUpdateDescription, estimatedValue }: ResultsPageProps) {
   const firstName = formData.step3?.firstName || "Friend"
   const address = formData.step1?.streetAddress || "Your Property"
 
@@ -45,7 +46,8 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
     greeting = "Good Night!"
   }
 
-  const estimatedValue = "$450,000" // This would typically come from an API
+  // Use the estimatedValue prop, fallback to hardcoded if null
+  const displayEstimatedValue = estimatedValue || "$450,000"; 
 
   const handleCashOfferClick = () => {
     console.log("Get a Cash Offer button clicked.")
@@ -89,7 +91,7 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
             <div className="mb-8">
               <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
               <span className="text-4xl font-bold text-gray-900 ml-2">
-                {estimatedValue.replace('$', '')}
+                {displayEstimatedValue.replace('$', '')}
               </span>
             </div>
 

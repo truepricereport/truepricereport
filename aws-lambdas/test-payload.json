@@ -1,0 +1,9 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"lead_type\": \"lead from webpage trueprice report\", \"status\": \"new\", \"source\": \"TruepriceReport\", \"first_name\": \"test\", \"last_name\": \"test test\", \"email\": \"testemailgmail.com\", \"phone\": \"1234\", \"street_address\": \"12300 Bermuda Road\", \"city\": \"Henderson\", \"locality\": \"Nevada\", \"postal_code\": \"89044\", \"country\": \"United States\", \"description\": \"ok sorry for the late testing\"}",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  },
+  "isBase64Encoded": false
+}
