@@ -1,0 +1,9 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"streetAddress\": \"2380 Kenneth Ave\", \"zipcode\": \"89052\"}",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*"
+  },
+  "isBase64Encoded": false
+}

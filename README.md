@@ -17,152 +17,80 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 
-## Brivity API Integration Notes
+## API Integration Notes
 
-This project integrates with the Brivity CRM API to create and update leads. Due to browser security restrictions (Same-Origin Policy and CORS), direct API calls from the client-side to `https://secure.brivity.com` will fail with a "No 'Access-Control-Allow-Origin' header" error.
+This project integrates with external APIs (Brivity CRM and CoreLogic for property data) via AWS Lambda proxies to bypass browser security restrictions (Same-Origin Policy and CORS). This architecture ensures that sensitive API keys are never exposed on the client-side.
 
-**Reason for AWS API Gateway + Lambda Proxy:**
-To circumvent the CORS issue, a server-side proxy is required. Your frontend will make requests to an AWS API Gateway endpoint, which will then trigger an AWS Lambda function. This Lambda function will forward the request to the Brivity API. Since server-to-server communication is not subject to browser CORS policies, the request will succeed. This also enhances security by keeping your sensitive Brivity API token off the client-side.
+**Architecture Overview:**
+Your frontend makes requests to AWS API Gateway endpoints. These endpoints trigger specific AWS Lambda functions. The Lambda functions then securely interact with the respective third-party APIs (Brivity or CoreLogic) and return the response back through API Gateway to your frontend.
 
 **Current Implementation Status:**
-The frontend code is set up to interact with this proxy. The Brivity API calls in `src/components/MainFlow.tsx` are now configured to hit your AWS API Gateway endpoint.
+
+*   **Brivity CRM Integration:** The frontend is configured to send lead data (after Step 3 submission and Result Page updates) to an AWS API Gateway endpoint, which proxies to the Brivity API.
+*   **CoreLogic Property Estimator:** The frontend is configured to send address data (after Step 1 confirmation) to a separate AWS API Gateway endpoint, which proxies to the CoreLogic API to fetch property details and a price estimate.
 
 **Environment Variables:**
 
-You**Frontend Environment Variables** (to be placed in `.env.local` in your project root):
+**Frontend Environment Variables** (to be placed in `.env.local` in your project root):
 
 ```
 # The URL of your AWS API Gateway endpoint that proxies to Brivity.
-# This is the URL your frontend will make requests to.
+# This is the URL your frontend will make requests to for lead creation/updates.
 NEXT_PUBLIC_AWS_API_GATEWAY_URL=https://ok333mxmd3.execute-api.us-west-1.amazonaws.com/default/newlead
 
-# Your Brivity Primary Agent ID.
-# This ID will be included in the payload sent from your frontend to the AWS proxy.
-NEXT_PUBLIC_BRIVITY_PRIMARY_AGENT_ID=244059
+# The URL of your AWS API Gateway endpoint that proxies to CoreLogic for property estimation.
+# This is the URL your frontend will make requests to for property data.
+NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL=https://1268av7s21.execute-api.us-west-1.amazonaws.com/default/propertyestimator
 ```
 
-**AWS Lambda Environment Variables** (to be configured directly on your Lambda function in the AWS console):
+**AWS Lambda Environment Variables** (to be configured directly on your respective Lambda functions in the AWS console):
 
 ```
+# --- For Brivity Proxy Lambda (brivity-proxy) ---
 # Your Brivity API Token.
 # This sensitive token must NOT be exposed in frontend code. It's used by your Lambda to authenticate with Brivity.
 BRIVITY_API_TOKEN=your_brivity_api_token_here
 
 # Your Brivity Primary Agent ID.
-# While also sent from the frontend, the Lambda also uses this for its internal logic/validation if needed,
-# or as a fallback/override for the agent ID used in the Brivity API call.
+# This ID is securely injected into the Brivity API payload by your Lambda function.
 BRIVITY_PRIMARY_AGENT_ID=244059
+
+# --- For CoreLogic Property Estimator Lambda (property-estimator) ---
+# Your CoreLogic Client Key.
+CORELOGIC_CLIENT_KEY=your_corelogic_client_key_here
+
+# Your CoreLogic Client Secret.
+CORELOGIC_CLIENT_SECRET=your_corelogic_client_secret_here
 ```
 
-**Steps to Set Up AWS Proxy (for Production Integration):**
+**Steps to Set Up AWS Proxies (for Production Integration):**
 
-1.  **Create an AWS Lambda Function:**
-    *   **File Location:** Create a new directory `aws-lambdas/brivity-proxy/` and inside it, an `index.mjs` file.
-    *   **Runtime:** Node.js
-    *   **Purpose:** This Lambda function will receive the request from API Gateway.
-    *   **Logic:** It will extract the request body, construct the `POST` request to `https://secure.brivity.com/api/v2/leads`. It must include the `Authorization: Token token=process.env.BRIVITY_API_TOKEN` header (note: `BRIVITY_API_TOKEN` will be an environment variable configured directly on the Lambda, not `NEXT_PUBLIC_...`). It will also include the `primary_agent_id` passed from your frontend.
-    *   **CORS:** **Crucially, your Lambda's response must include CORS headers** (e.g., `Access-Control-Allow-Origin: *` or your specific frontend origin, and `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`) so API Gateway can pass them back to your browser.
+### 1. Brivity Lead Proxy Lambda (`aws-lambdas/brivity-proxy/index.mjs`)
 
-    *Example `aws-lambdas/brivity-proxy/index.mjs` structure:*
-    ```javascript
-    import { Buffer } from 'buffer';
+*   **File Location:** `aws-lambdas/brivity-proxy/index.mjs`
+*   **Runtime:** Node.js
+*   **Logic:** This Lambda acts as a secure intermediary for Brivity CRM. It receives the JSON payload from your frontend via API Gateway. It then securely retrieves your `BRIVITY_API_TOKEN` and `BRIVITY_PRIMARY_AGENT_ID` from its own environment variables, injects the `primary_agent_id` into the payload, and forwards the complete request to the Brivity API. Finally, it returns Brivity's response back to your frontend.
+*   **CORS:** **Crucially, your Lambda's response must include CORS headers** (e.g., `Access-Control-Allow-Origin: *` or your specific frontend origin, and `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`) so API Gateway can pass them back to your browser.
 
-    export const handler = async (event) => {
-        console.log("Received event:", JSON.stringify(event, null, 2));
+### 2. CoreLogic Property Estimator Lambda (`aws-lambdas/property-estimator/index.mjs`)
 
-        if (event.requestContext && event.requestContext.http && event.requestContext.http.method === 'OPTIONS') {
-            // Respond to CORS preflight request
-            return {
-                statusCode: 200,
-                headers: {
-                    "Access-Control-Allow-Origin": "*", // Or your specific frontend URL
-                    "Access-Control-Allow-Methods": "POST, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                },
-                body: "",
-            };
-        }
+*   **File Location:** `aws-lambdas/property-estimator/index.mjs`
+*   **Runtime:** Node.js
+*   **Logic:** This Lambda acts as a secure intermediary for CoreLogic property data. It receives address details (street address, zipcode) from your frontend via API Gateway. It then securely uses its `CORELOGIC_CLIENT_KEY` and `CORELOGIC_CLIENT_SECRET` environment variables to first obtain an OAuth `access_token` from CoreLogic. Subsequently, it uses this `access_token` to call the CoreLogic Property Search API with the provided address. It returns the found property details (including a simulated price estimate for now) back to your frontend.
+*   **CORS:** **Crucially, your Lambda's response must include CORS headers** (e.g., `Access-Control-Allow-Origin: *` or your specific frontend origin, and `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`) so API Gateway can pass them back to your browser.
 
-        try {
-            const brivityApiToken = process.env.BRIVITY_API_TOKEN; // Get from Lambda environment variables
-            const brivityPrimaryAgentId = process.env.BRIVITY_PRIMARY_AGENT_ID; // Get from Lambda environment variables
+### 3. AWS API Gateway Configuration
 
-            if (!brivityApiToken) {
-                console.error("BRIVITY_API_TOKEN is not set in Lambda environment variables.");
-                return {
-                    statusCode: 500,
-                    headers: {
-                        "Access-Control-Allow-Origin": "*",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ message: "Server configuration error: Brivity API token missing." }),
-                };
-            }
+*   **Brivity API Gateway (`newLead-API`):**
+    *   Endpoint: `https://ok333mxmd3.execute-api.us-west-1.amazonaws.com/default/newlead`
+    *   Ensure its `/newlead` resource has a `POST` method integrated with your `brivity-proxy` Lambda function.
+    *   **Crucial:** Ensure CORS is enabled on this API Gateway method/resource.
 
-            if (!brivityPrimaryAgentId) {
-                console.error("BRIVITY_PRIMARY_AGENT_ID is not set in Lambda environment variables.");
-                return {
-                    statusCode: 500,
-                    headers: {
-                        "Access-Control-Allow-Origin": "*",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ message: "Server configuration error: Brivity Primary Agent ID missing." }),
-                };
-            }
+*   **CoreLogic Property Estimator API Gateway (`property-estimator-API`):**
+    *   Endpoint: `https://1268av7s21.execute-api.us-west-1.amazonaws.com/default/propertyestimator`
+    *   Ensure its `/propertyestimator` resource has a `POST` method integrated with your `property-estimator` Lambda function.
+    *   **Crucial:** Ensure CORS is enabled on this API Gateway method/resource.
 
-            let requestBody;
-            if (event.isBase64Encoded) {
-                requestBody = JSON.parse(Buffer.from(event.body, 'base64').toString('utf8'));
-            } else {
-                requestBody = JSON.parse(event.body);
-            }
+### 4. Deploying Your AWS Setup
 
-            // Ensure primary_agent_id is set in the payload, prioritizing Lambda env var if needed
-            // This line ensures the Lambda's configured agent ID is always used for the Brivity call
-            requestBody.primary_agent_id = parseInt(brivityPrimaryAgentId, 10);
-            
-            console.log("Forwarding payload to Brivity:", requestBody);
-
-            const brivityResponse = await fetch('https://secure.brivity.com/api/v2/leads', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token token=${brivityApiToken}`,
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            const brivityData = await brivityResponse.json();
-            console.log("Response from Brivity:", brivityData);
-
-            return {
-                statusCode: brivityResponse.status,
-                headers: {
-                    "Access-Control-Allow-Origin": "*", // Allow all origins for simplicity in development
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(brivityData),
-            };
-
-        } catch (error) {
-            console.error("Error in Lambda function:", error);
-            return {
-                statusCode: 500,
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ message: "Internal server error", error: error.message }),
-            };
-        }
-    };
-    ```
-
-2.  **Create an AWS API Gateway:**
-    *   Your API Gateway `newLead-API` with endpoint `https://ok333mxmd3.execute-api.us-west-1.amazonaws.com/default/newlead` is already set up.
-    *   Ensure its `/newlead` resource has a `POST` method integrated with your Lambda function.
-    *   **Crucial:** Ensure CORS is enabled on this API Gateway resource/method. API Gateway will add the `Access-Control-Allow-Origin` header (and others) based on its configuration, but it's good practice for the Lambda to also return them.
-
-3.  **Deploy API Gateway:** Once your Lambda is updated and integrated, deploy your API Gateway changes. Your frontend should then be able to make live calls.
+Once your Lambda functions are updated with their respective code and environment variables, and API Gateway resources are correctly integrated, deploy your API Gateway changes. Your frontend should then be able to make live calls to both services.

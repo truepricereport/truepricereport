@@ -143,19 +143,45 @@ export function MainFlow() {
   }
 
   const handleStep1NextSubmit = async (addressData: FormData['step1']) => {
-    console.log("Attempting to fetch property info for Step 1 'Next' button:", addressData);
-    // Mock API call to get property information (only price estimate)
+    console.log("Attempting to fetch property info for Step 1 CONFIRM button:", addressData);
     try {
-      const mockPropertyInfo = {
-        priceEstimate: `$${(Math.floor(Math.random() * 500) + 100) * 1000}` // Random price between $100,000 and $600,000 in thousands
+      const corelogicApiGatewayUrl = process.env.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL;
+      if (!corelogicApiGatewayUrl) {
+        console.error("CoreLogic API Gateway URL is not set. Please check NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL environment variable.");
+        alert("Property estimation service not configured.");
+        return { success: false, error: "CoreLogic API Gateway URL not configured." };
+      }
+
+      const payload = {
+        streetAddress: addressData.streetAddress,
+        zipcode: addressData.zipcode,
       };
 
-      console.log("Mock Property Info API Response:", mockPropertyInfo);
-      setEstimatedValue(mockPropertyInfo.priceEstimate); // Store the estimated value
+      console.log("Sending property info payload to CoreLogic proxy:", payload);
 
-      return { success: true, data: mockPropertyInfo };
+      const response = await fetch(corelogicApiGatewayUrl, {
+        method: "POST", // As per API Gateway definition: Method: ANY, Resource path: /propertyestimator, usually POST for body
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log("CoreLogic API Response via Proxy:", data);
+
+      if (response.ok && data.priceEstimate) {
+        setEstimatedValue(data.priceEstimate); // Store the actual estimated value from the Lambda
+        console.log("Estimated value updated:", data.priceEstimate);
+        return { success: true, data };
+      } else {
+        console.error("CoreLogic API Error via Proxy:", data);
+        alert("Failed to get property estimate. Please try again.");
+        return { success: false, error: data };
+      }
     } catch (error) {
-      console.error("Error fetching mock property info:", error);
+      console.error("Error fetching property info via CoreLogic proxy:", error);
+      alert("Error fetching property estimate.");
       return { success: false, error };
     }
   };

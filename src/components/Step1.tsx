@@ -49,10 +49,10 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
     }
   }
 
-  const handleNext = () => {
-    console.log("Step 1 Next button clicked. Triggering onStep1NextSubmit.")
-    onStep1NextSubmit(localData) // Call the new prop with current Step 1 data
-    onNext()
+  const handleNext = async () => {
+    console.log("Step 1 CONFIRM button clicked. Triggering onStep1NextSubmit.")
+    await onStep1NextSubmit(localData); // Await the API call
+    onNext();
   }
 
   const isFormValid = localData.streetAddress && localData.city && localData.state && localData.zipcode;
@@ -161,7 +161,7 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
           disabled={!isFormValid}
           className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-8 py-3 rounded-md font-medium mt-8 w-full disabled:bg-gray-400"
         >
-          Next
+          CONFIRM
         </Button>
 
         <p className="text-sm text-gray-600 mt-6">
