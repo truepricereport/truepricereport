@@ -25,13 +25,25 @@ interface FormData {
   }
 }
 
+interface PropertyEstimateData {
+  status: "available" | "unavailable";
+  priceEstimate?: string;
+  lowEstimate?: string;
+  highEstimate?: string;
+  valuationDate?: string;
+  clip?: string;
+  v1PropertyId?: string;
+  mainMessage?: string;
+  subMessage?: string;
+}
+
 interface ResultsPageProps {
   formData: FormData
   onUpdateDescription: (descriptionPart: string) => void // New prop for updating description
-  estimatedValue: string | null; // New prop for estimated value
+  propertyEstimateData: PropertyEstimateData | null; // New prop for the entire estimated value data
 }
 
-export function ResultsPage({ formData, onUpdateDescription, estimatedValue }: ResultsPageProps) {
+export function ResultsPage({ formData, onUpdateDescription, propertyEstimateData }: ResultsPageProps) {
   const firstName = formData.step3?.firstName || "Friend"
   const address = formData.step1?.streetAddress || "Your Property"
 
@@ -45,9 +57,6 @@ export function ResultsPage({ formData, onUpdateDescription, estimatedValue }: R
   } else {
     greeting = "Good Night!"
   }
-
-  // Use the estimatedValue prop, fallback to hardcoded if null
-  const displayEstimatedValue = estimatedValue || "$450,000"; 
 
   const handleCashOfferClick = () => {
     console.log("Get a Cash Offer button clicked.")
@@ -86,14 +95,29 @@ export function ResultsPage({ formData, onUpdateDescription, estimatedValue }: R
           {/* Home Value Card */}
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Home value (Estimated)
+              Your Home value {propertyEstimateData?.status === "available" ? "(Estimated)" : ""}
             </h2>
-            <div className="mb-8">
-              <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
-              <span className="text-4xl font-bold text-gray-900 ml-2">
-                {displayEstimatedValue.replace('$', '')}
-              </span>
-            </div>
+
+            {propertyEstimateData?.status === "available" && (
+              <div className="mb-8">
+                <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
+                <span className="text-4xl font-bold text-gray-900 ml-2">
+                  {propertyEstimateData.priceEstimate?.replace('$', '')}
+                </span>
+                {propertyEstimateData.lowEstimate && propertyEstimateData.highEstimate && (
+                  <p className="text-gray-600 mt-2">Range: {propertyEstimateData.lowEstimate} - {propertyEstimateData.highEstimate}</p>
+                )}
+              </div>
+            )}
+
+            {propertyEstimateData?.status === "unavailable" && propertyEstimateData.mainMessage && (
+              <div className="mb-8">
+                <p className="text-xl font-semibold text-gray-900 mb-2">{propertyEstimateData.mainMessage}</p>
+                {propertyEstimateData.subMessage && (
+                  <p className="text-gray-600">{propertyEstimateData.subMessage}</p>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3">
               <Button
@@ -109,7 +133,7 @@ export function ResultsPage({ formData, onUpdateDescription, estimatedValue }: R
                 Refinance
               </Button>
               <Button
-                className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
                 onClick={handleContactAgentClick}
               >
                 Contact Real Estate Agent

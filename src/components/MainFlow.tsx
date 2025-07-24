@@ -35,6 +35,18 @@ interface LeadInfo {
   initialDescription: string
 }
 
+interface PropertyEstimateData {
+  status: "available" | "unavailable";
+  priceEstimate?: string;
+  lowEstimate?: string;
+  highEstimate?: string;
+  valuationDate?: string;
+  clip?: string;
+  v1PropertyId?: string;
+  mainMessage?: string;
+  subMessage?: string;
+}
+
 export function MainFlow() {
   const [currentStep, setCurrentStep] = useState<FlowStep>("hero")
   const [formData, setFormData] = useState<FormData>({
@@ -58,7 +70,7 @@ export function MainFlow() {
     }
   })
   const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null) // To store email and initial description
-  const [estimatedValue, setEstimatedValue] = useState<string | null>(null); // To store the estimated value from Step 1 mock API
+  const [propertyEstimateData, setPropertyEstimateData] = useState<PropertyEstimateData | null>(null); // To store the entire estimated value data
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...data }))
@@ -167,12 +179,14 @@ export function MainFlow() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data: PropertyEstimateData = await response.json();
       console.log("CoreLogic API Response via Proxy:", data);
 
-      if (response.ok && data.priceEstimate) {
-        setEstimatedValue(data.priceEstimate); // Store the actual estimated value from the Lambda
-        console.log("Estimated value updated:", data.priceEstimate);
+      // Store the entire response data
+      setPropertyEstimateData(data);
+
+      if (response.ok) {
+        // Even if valuation is unavailable, we proceed to the results page to show the message
         return { success: true, data };
       } else {
         console.error("CoreLogic API Error via Proxy:", data);
@@ -281,7 +295,7 @@ export function MainFlow() {
       )
 
     case "results":
-      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} estimatedValue={estimatedValue} />
+      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} propertyEstimateData={propertyEstimateData} />
 
     default:
       return <HeroSection onAddressSubmit={handleAddressSubmit} />
