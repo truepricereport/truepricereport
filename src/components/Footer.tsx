@@ -18,7 +18,7 @@ export function Footer() {
         <div className="flex items-center gap-4">
           <span className="text-sm">Powered By:</span>
           <Image
-            src="https://ext.same-assets.com/2983890396/3483267653.png"
+            src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportMLSlogo.png"
             alt="MLS Realtor Logo"
             width={120}
             height={38}

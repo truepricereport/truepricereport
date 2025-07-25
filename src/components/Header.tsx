@@ -15,7 +15,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
-            src="https://ext.same-assets.com/2983890396/2132483316.png"
+            src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
             alt="True Price Report"
             width={200}
             height={60}
@@ -28,7 +28,7 @@ export function Header() {
             <Button
               className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-6 py-2 rounded-md flex items-center gap-2"
             >
-              Main Menu
+              <span className="md:inline hidden">Main Menu</span>
               <Menu className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

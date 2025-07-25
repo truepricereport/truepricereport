@@ -66,10 +66,14 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
   return (
     <div
       className="min-h-[80vh] py-16 px-6 bg-cover bg-center"
-      style={{ backgroundImage: `url('https://truepricereport.com/wp-content/plugins/mts-real-estate-equity/public/images/soldbybrenkus_bg.jpeg')` }}
+      style={{ backgroundImage: `url('https://truepricereport.s3.us-west-1.amazonaws.com/Homepagetruepricereportimage.jpeg')` }}
     >
       <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg">
         <div className="mb-8">
+          <Image
+            src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
+            alt="True Price Report"
+          />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {greeting} {firstName}
           </h1>
@@ -116,7 +120,7 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
-                onClick={handleContactAgentClick}
+                onClick={handleContactAgentClick
               >
                 Contact Real Estate Agent
               </Button>
