@@ -120,8 +120,7 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
-                onClick={handleContactAgentClick
-              >
+                onClick={handleContactAgentClick}>
                 Contact Real Estate Agent
               </Button>
             </div>
