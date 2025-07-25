@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step3Data {
   firstName: string
@@ -61,14 +60,6 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
             width={200}
             height={60}
             className="h-16 w-auto mx-auto mb-6"
-          />
-        </div>
-
-        {/* Google Map Display */}
-        <div className="mb-8">
-          <GoogleMap
-            address={selectedAddress}
-            className="shadow-md"
           />
         </div>
 

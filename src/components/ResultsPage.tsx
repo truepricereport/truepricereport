@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { GoogleMap } from "@/components/GoogleMap"
 
 interface FormData {
   selectedAddress: string
@@ -11,7 +10,11 @@ interface FormData {
     city: string
     state: string
     country: string
-    zipcode: string
+    zipcode: string;
+    priceEstimate?: string;
+    lowEstimate?: string;
+    highEstimate?: string;
+    valuationStatus?: "available" | "unavailable";
   }
   step2: {
     beds: string
@@ -25,25 +28,12 @@ interface FormData {
   }
 }
 
-interface PropertyEstimateData {
-  status: "available" | "unavailable";
-  priceEstimate?: string;
-  lowEstimate?: string;
-  highEstimate?: string;
-  valuationDate?: string;
-  clip?: string;
-  v1PropertyId?: string;
-  mainMessage?: string;
-  subMessage?: string;
-}
-
 interface ResultsPageProps {
   formData: FormData
-  onUpdateDescription: (descriptionPart: string) => void // New prop for updating description
-  propertyEstimateData: PropertyEstimateData | null; // New prop for the entire estimated value data
+  onUpdateDescription: (descriptionPart: string) => void
 }
 
-export function ResultsPage({ formData, onUpdateDescription, propertyEstimateData }: ResultsPageProps) {
+export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps) {
   const firstName = formData.step3?.firstName || "Friend"
   const address = formData.step1?.streetAddress || "Your Property"
 
@@ -95,27 +85,19 @@ export function ResultsPage({ formData, onUpdateDescription, propertyEstimateDat
           {/* Home Value Card */}
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Home value {propertyEstimateData?.status === "available" ? "(Estimated)" : ""}
+              Your Home value {formData.step1.valuationStatus === "available" ? "(Estimated)" : ""}
             </h2>
 
-            {propertyEstimateData?.status === "available" && (
+            {formData.step1.valuationStatus === "available" ? (
               <div className="mb-8">
                 <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
                 <span className="text-4xl font-bold text-gray-900 ml-2">
-                  {propertyEstimateData.priceEstimate?.replace('$', '')}
+                  {formData.step1.priceEstimate?.replace('$', '')}
                 </span>
-                {propertyEstimateData.lowEstimate && propertyEstimateData.highEstimate && (
-                  <p className="text-gray-600 mt-2">Range: {propertyEstimateData.lowEstimate} - {propertyEstimateData.highEstimate}</p>
-                )}
               </div>
-            )}
-
-            {propertyEstimateData?.status === "unavailable" && propertyEstimateData.mainMessage && (
-              <div className="mb-8">
-                <p className="text-xl font-semibold text-gray-900 mb-2">{propertyEstimateData.mainMessage}</p>
-                {propertyEstimateData.subMessage && (
-                  <p className="text-gray-600">{propertyEstimateData.subMessage}</p>
-                )}
+            ) : (
+              <div className="mb-8 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800">
+                Valuation unavailable through standard tools. This property may require advanced analysis — contact us for a premium valuation.
               </div>
             )}
 
@@ -140,40 +122,39 @@ export function ResultsPage({ formData, onUpdateDescription, propertyEstimateDat
               </Button>
             </div>
           </div>
-
-          {/* Property Map */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg">
-            <GoogleMap
-              address={address}
-              className="w-full h-80 rounded-lg"
-            />
-          </div>
         </div>
 
         {/* Property Details */}
-        {formData.step2 && (
-          <div className="mt-8 bg-white rounded-2xl p-8 shadow-lg">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="mt-8 bg-white rounded-2xl p-8 shadow-lg">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
+          <p>Some properties require enhanced valuation tools due to unique characteristics or market activity. Contact us to learn more.</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {formData.step2.beds && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.beds}</div>
                 <div className="text-gray-600">Bedrooms</div>
               </div>
+            )}
+            {formData.step2.baths && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.baths}</div>
                 <div className="text-gray-600">Bathrooms</div>
               </div>
+            )}
+            {formData.step1.valuationStatus === "available" && formData.step1.lowEstimate && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-[#0f6c0c]">2,100</div>
-                <div className="text-gray-600">Sq Ft</div>
+                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
+                <div className="text-gray-600">Low Estimate</div>
               </div>
+            )}
+            {formData.step1.valuationStatus === "available" && formData.step1.highEstimate && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-[#0f6c0c]">1995</div>
-                <div className="text-gray-600">Year Built</div>
+                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.highEstimate}</div>
+                <div className="text-gray-600">High Estimate</div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         <div className="mt-8 text-center">
           <Button

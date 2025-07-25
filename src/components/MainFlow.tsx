@@ -1,3 +1,7 @@
+/**
+ * This is the main flow of the application.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -16,7 +20,11 @@ interface FormData {
     city: string
     state: string
     country: string
-    zipcode: string
+    zipcode: string;
+    priceEstimate?: string;
+    lowEstimate?: string;
+    highEstimate?: string;
+    valuationStatus?: "available" | "unavailable";
   }
   step2: {
     beds: string
@@ -33,18 +41,6 @@ interface FormData {
 interface LeadInfo {
   email: string
   initialDescription: string
-}
-
-interface PropertyEstimateData {
-  status: "available" | "unavailable";
-  priceEstimate?: string;
-  lowEstimate?: string;
-  highEstimate?: string;
-  valuationDate?: string;
-  clip?: string;
-  v1PropertyId?: string;
-  mainMessage?: string;
-  subMessage?: string;
 }
 
 export function MainFlow() {
@@ -70,7 +66,6 @@ export function MainFlow() {
     }
   })
   const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null) // To store email and initial description
-  const [propertyEstimateData, setPropertyEstimateData] = useState<PropertyEstimateData | null>(null); // To store the entire estimated value data
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...data }))
@@ -172,27 +167,59 @@ export function MainFlow() {
       console.log("Sending property info payload to CoreLogic proxy:", payload);
 
       const response = await fetch(corelogicApiGatewayUrl, {
-        method: "POST", // As per API Gateway definition: Method: ANY, Resource path: /propertyestimator, usually POST for body
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
-      const data: PropertyEstimateData = await response.json();
+      const data = await response.json();
       console.log("CoreLogic API Response via Proxy:", data);
 
-      // Store the entire response data
-      setPropertyEstimateData(data);
-
-      if (response.ok) {
-        // Even if valuation is unavailable, we proceed to the results page to show the message
-        return { success: true, data };
+      if (response.status === 200) {
+        // Valuation available
+        setFormData(prev => ({
+          ...prev,
+          step1: {
+            ...prev.step1,
+            priceEstimate: data.priceEstimate || undefined,
+            lowEstimate: data.lowEstimate || undefined,
+            highEstimate: data.highEstimate || undefined,
+            valuationStatus: "available"
+          }
+        }));
+      } else if (response.status === 404 || response.status === 500) { // Also handle 500
+        // Valuation unavailable or internal server error
+        setFormData(prev => ({
+          ...prev,
+          step1: {
+            ...prev.step1,
+            priceEstimate: undefined,
+            lowEstimate: undefined,
+            highEstimate: undefined,
+            valuationStatus: "unavailable"
+          }
+        }));
+        // Log 500 errors to the console, but do not show an alert
+        if (response.status === 500) {
+           console.error(`An internal server error occurred while fetching property estimate. Status: ${response.status}`);
+        }
       } else {
+        // Handle other unexpected status codes
         console.error("CoreLogic API Error via Proxy:", data);
-        alert("Failed to get property estimate. Please try again.");
+        alert(`Failed to get property estimate. Unexpected error: ${response.status}`);
         return { success: false, error: data };
       }
+
+      if (response.ok || response.status === 404 || response.status === 500) { // Proceed for 200, 404, and 500
+        return { success: true, data };
+      } else {
+         console.error("CoreLogic API Error via Proxy:", data);
+         alert(`Failed to get property estimate. Unexpected error: ${response.status}`);
+         return { success: false, error: data };
+      }
+
     } catch (error) {
       console.error("Error fetching property info via CoreLogic proxy:", error);
       alert("Error fetching property estimate.");
@@ -295,7 +322,7 @@ export function MainFlow() {
       )
 
     case "results":
-      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} propertyEstimateData={propertyEstimateData} />
+      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} />
 
     default:
       return <HeroSection onAddressSubmit={handleAddressSubmit} />

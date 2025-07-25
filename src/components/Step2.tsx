@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step2Data {
   beds: string
@@ -64,14 +63,6 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
             width={200}
             height={60}
             className="h-16 w-auto mx-auto mb-6"
-          />
-        </div>
-
-        {/* Google Map Display */}
-        <div className="mb-8">
-          <GoogleMap
-            address={selectedAddress}
-            className="shadow-md"
           />
         </div>
 
