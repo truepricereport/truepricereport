@@ -78,6 +78,8 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
           <Image
             src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
             alt="True Price Report"
+            width={200}
+            height={60}
           />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {greeting} {firstName}
