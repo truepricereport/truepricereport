@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { GoogleMap } from "@/components/GoogleMap"
+import { useState } from 'react'
 
 interface FormData {
   selectedAddress: string
@@ -53,19 +54,26 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
     greeting = "Good Night!"
   }
 
+  const [cashOfferClicked, setCashOfferClicked] = useState(false)
+  const [refinanceClicked, setRefinanceClicked] = useState(false)
+  const [contactAgentClicked, setContactAgentClicked] = useState(false)
+
   const handleCashOfferClick = () => {
     console.log("Get a Cash Offer button clicked.")
     onUpdateDescription("I am interested in getting a Cash Offer.")
+    setCashOfferClicked(true)
   }
 
   const handleRefinanceClick = () => {
     console.log("Refinance button clicked.")
     onUpdateDescription("I am interested in Refinancing.")
+    setRefinanceClicked(true)
   }
 
   const handleContactAgentClick = () => {
     console.log("Contact Real Estate Agent button clicked.")
     onUpdateDescription("I am interested in contacting a Real Estate Agent.")
+    setContactAgentClicked(true)
   }
 
   return (
@@ -126,18 +134,22 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                 onClick={handleCashOfferClick}
+                disabled={cashOfferClicked}
               >
                 Get a Cash Offer
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                 onClick={handleRefinanceClick}
+                disabled={refinanceClicked}
               >
                 Refinance
               </Button>
               <Button
                 className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
-                onClick={handleContactAgentClick}>
+                onClick={handleContactAgentClick}
+                disabled={contactAgentClicked}
+              >
                 Contact Real Estate Agent
               </Button>
             </div>

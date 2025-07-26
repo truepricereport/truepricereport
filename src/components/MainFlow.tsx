@@ -146,15 +146,6 @@ export function MainFlow() {
       console.log("Brivity API Response via Proxy:", data)
 
       if (response.ok) {
-        // For initial lead creation (not updates or Step 1 submits where email might not be available yet)
-        if (!isUpdate && payload.email) {
-          const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}`
-          setLeadInfo({
-            email: payload.email, // Use email from payload if available
-            initialDescription: initialDescription
-          })
-          console.log("Lead info stored:", { email: payload.email, initialDescription })
-        }
         return { success: true, data }
       } else {
         console.error("Brivity API Error via Proxy:", data)
@@ -247,7 +238,7 @@ export function MainFlow() {
   const handleFinalSubmit = async () => {
     console.log("Final form data:", formData)
 
-    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}`
+    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}`
 
     const payload = {
       // primary_agent_id is now handled securely by the Lambda function
@@ -268,6 +259,10 @@ export function MainFlow() {
 
     const result = await sendLeadToBrivity(payload)
     if (result.success) {
+        setLeadInfo({
+            email: formData.step3.email, // Use email from payload if available
+            initialDescription: ''
+        })
       setCurrentStep("results")
     } else {
       alert("Failed to submit lead. Please try again.")
@@ -276,16 +271,13 @@ export function MainFlow() {
 
   const handleUpdateDescription = async (newDescriptionPart: string) => {
     if (leadInfo) {
-      const updatedDescription = `${leadInfo.initialDescription}. ${newDescriptionPart}`
       const payload = {
         // primary_agent_id is now handled securely by the Lambda function
         email: leadInfo.email,
-        description: updatedDescription
+        description: newDescriptionPart
       }
       const result = await sendLeadToBrivity(payload, true)
       if (result.success) {
-        // Optionally update the stored initialDescription to reflect the new state if needed for further updates
-        setLeadInfo(prev => prev ? { ...prev, initialDescription: updatedDescription } : null)
         console.log("Description updated successfully.")
       } else {
         console.error("Failed to update description.")
