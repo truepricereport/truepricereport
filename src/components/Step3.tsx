@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step3Data {
   firstName: string
@@ -23,9 +24,11 @@ interface Step3Props {
   onSubmit: () => void
   onPrevious: () => void
   selectedAddress: string
+  latitude?: number
+  longitude?: number
 }
 
-export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress }: Step3Props) {
+export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude }: Step3Props) {
   const [localData, setLocalData] = useState<Step3Data>(() => ({
     firstName: formData.step3.firstName || "",
     lastName: formData.step3.lastName || "",
@@ -64,6 +67,16 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
         </div>
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 3: Confirm Your Information</h3>
+
+        {/* Google Map Display */}
+        <div className="mb-8">
+          <GoogleMap
+            address={selectedAddress}
+            latitude={latitude}
+            longitude={longitude}
+            className="shadow-md"
+          />
+        </div>
 
         <div className="space-y-4">
           <div>

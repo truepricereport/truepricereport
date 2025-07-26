@@ -2,9 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { GoogleMap } from "@/components/GoogleMap"
 
 interface FormData {
   selectedAddress: string
+  latitude?: number
+  longitude?: number
   step1: {
     streetAddress: string
     city: string
@@ -36,6 +39,8 @@ interface ResultsPageProps {
 export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps) {
   const firstName = formData.step3?.firstName || "Friend"
   const address = formData.step1?.streetAddress || "Your Property"
+  const latitude = formData?.latitude
+  const longitude = formData?.longitude
 
   // Get current time to determine greeting
   const currentHour = new Date().getHours()
@@ -83,6 +88,16 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
           <p className="text-xl font-semibold text-gray-900">
             {address}
           </p>
+        </div>
+
+        {/* Google Map Display */}
+        <div className="mb-8">
+          <GoogleMap
+            address={formData.selectedAddress}
+            latitude={latitude}
+            longitude={longitude}
+            className="shadow-md"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

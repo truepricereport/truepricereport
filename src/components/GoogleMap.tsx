@@ -6,9 +6,11 @@ import { Loader } from "@googlemaps/js-api-loader"
 interface GoogleMapProps {
   address: string
   className?: string
+  latitude?: number
+  longitude?: number
 }
 
-export function GoogleMap({ address, className = "" }: GoogleMapProps) {
+export function GoogleMap({ address, className = "", latitude, longitude }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
 
@@ -31,7 +33,7 @@ export function GoogleMap({ address, className = "" }: GoogleMapProps) {
         // Initialize map
         const map = new google.maps.Map(mapRef.current, {
           zoom: 15,
-          center: defaultLocation,
+          center: latitude && longitude ? { lat: latitude, lng: longitude } : defaultLocation,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
@@ -48,7 +50,7 @@ export function GoogleMap({ address, className = "" }: GoogleMapProps) {
         mapInstanceRef.current = map
 
         // Geocode the address
-        if (address && address.trim()) {
+        if (address && address.trim() && !latitude && !longitude) {
           const geocoder = new google.maps.Geocoder()
           geocoder.geocode({ address: address }, (results, status) => {
             if (status === "OK" && results && results[0]) {
@@ -67,6 +69,17 @@ export function GoogleMap({ address, className = "" }: GoogleMapProps) {
               })
             } else {
               console.log("Geocoding failed, using default location")
+            }
+          })
+        } else if (latitude && longitude) {
+          // Add marker
+          new google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: address,
+            icon: {
+              url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+              scaledSize: new google.maps.Size(32, 32)
             }
           })
         }
@@ -98,7 +111,7 @@ export function GoogleMap({ address, className = "" }: GoogleMapProps) {
     }
 
     initializeMap()
-  }, [address])
+  }, [address, latitude, longitude])
 
   return (
     <div

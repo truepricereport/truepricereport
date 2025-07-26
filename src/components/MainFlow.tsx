@@ -13,8 +13,22 @@ import { ResultsPage } from "./ResultsPage"
 
 type FlowStep = "hero" | "step1" | "step2" | "step3" | "results"
 
+interface PlaceDetails {
+  fullAddress: string
+  streetNumber: string
+  route: string
+  city: string
+  state: string
+  country: string
+  zipcode: string
+  latitude?: number
+  longitude?: number
+}
+
 interface FormData {
   selectedAddress: string
+  latitude?: number
+  longitude?: number
   step1: {
     streetAddress: string
     city: string
@@ -47,6 +61,8 @@ export function MainFlow() {
   const [currentStep, setCurrentStep] = useState<FlowStep>("hero")
   const [formData, setFormData] = useState<FormData>({
     selectedAddress: "",
+    latitude: undefined,
+    longitude: undefined,
     step1: {
       streetAddress: "",
       city: "",
@@ -75,35 +91,36 @@ export function MainFlow() {
     setFormData(prev => ({ ...prev, selectedAddress: address }))
   }
 
-  const handleAddressSubmit = (address: string) => {
+  const handleAddressSubmit = (address: string, placeDetails?: PlaceDetails) => {
     // Get detailed address info if available
-    const details = (window as unknown as Record<string, unknown>).selectedAddressDetails as {
-      streetNumber: string
-      route: string
-      city: string
-      state: string
-      country: string
-      zipcode: string
-    } | undefined
 
     let step1Data = { ...formData.step1, streetAddress: address }
 
-    if (details) {
+    if (placeDetails) {
       // Auto-populate Step 1 fields with detailed address components
       step1Data = {
-        streetAddress: `${details.streetNumber} ${details.route}`.trim() || address,
-        city: details.city || "",
-        state: details.state || "",
-        country: details.country || "USA",
-        zipcode: details.zipcode || ""
+        streetAddress: `${placeDetails.streetNumber} ${placeDetails.route}`.trim() || address,
+        city: placeDetails.city || "",
+        state: placeDetails.state || "",
+        country: placeDetails.country || "USA",
+        zipcode: placeDetails.zipcode || ""
       }
+
+      setFormData(prev => ({
+        ...prev,
+        selectedAddress: address,
+        latitude: placeDetails.latitude,
+        longitude: placeDetails.longitude,
+        step1: step1Data
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        selectedAddress: address,
+        step1: step1Data
+      }))
     }
 
-    setFormData(prev => ({
-      ...prev,
-      selectedAddress: address,
-      step1: step1Data
-    }))
     setCurrentStep("step1")
   }
 
@@ -307,6 +324,8 @@ export function MainFlow() {
           onNext={goToStep3}
           onPrevious={goToStep1}
           selectedAddress={formData.selectedAddress}
+          latitude={formData.latitude}
+          longitude={formData.longitude}
         />
       )
 
@@ -318,6 +337,8 @@ export function MainFlow() {
           onSubmit={handleFinalSubmit}
           onPrevious={goToStep2FromStep3}
           selectedAddress={formData.selectedAddress}
+          latitude={formData.latitude}
+          longitude={formData.longitude}
         />
       )
 

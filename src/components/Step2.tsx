@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step2Data {
   beds: string
@@ -27,9 +28,11 @@ interface Step2Props {
   onNext: () => void
   onPrevious: () => void
   selectedAddress: string
+  latitude?: number
+  longitude?: number
 }
 
-export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress }: Step2Props) {
+export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, latitude, longitude }: Step2Props) {
   const [localData, setLocalData] = useState<Step2Data>(() => ({
     beds: formData.step2.beds || "",
     baths: formData.step2.baths || ""
@@ -67,6 +70,16 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
         </div>
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 2: Home Basics</h3>
+
+        {/* Google Map Display */}
+        <div className="mb-8">
+          <GoogleMap
+            address={selectedAddress}
+            latitude={latitude}
+            longitude={longitude}
+            className="shadow-md"
+          />
+        </div>
 
         <div className="space-y-6">
           <div>

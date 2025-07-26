@@ -18,7 +18,7 @@ interface PlaceDetails {
 }
 
 interface HeroSectionProps {
-  onAddressSubmit: (address: string) => void
+  onAddressSubmit: (address: string, placeDetails?: PlaceDetails) => void
 }
 
 export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
@@ -41,7 +41,8 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
 
     // If an address has been selected via the PlaceAutocomplete, use it
     if (selectedAddress) {
-      onAddressSubmit(selectedAddress)
+      const placeDetails = (window as unknown as Record<string, unknown>).selectedAddressDetails as PlaceDetails | undefined;
+      onAddressSubmit(selectedAddress, placeDetails)
     } else {
       // Fallback: try to get value from any input in the form
       const addressInput = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement

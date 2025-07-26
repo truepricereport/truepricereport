@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,9 +26,11 @@ interface Step1Props {
   selectedAddress: string
   updateSelectedAddress: (address: string) => void
   onStep1NextSubmit: (addressData: Step1Data) => void // New prop for Step 1 API call
+  latitude?: number
+  longitude?: number
 }
 
-export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit }: Step1Props) {
+export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit, latitude, longitude }: Step1Props) {
   const [localData, setLocalData] = useState<Step1Data>(() => ({
     streetAddress: selectedAddress || formData.step1.streetAddress || "",
     city: formData.step1.city || "",
@@ -36,6 +38,40 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
     country: formData.step1.country || "USA",
     zipcode: formData.step1.zipcode || ""
   }))
+
+  const [streetViewUrl, setStreetViewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (latitude && longitude) {
+      getStreetViewImage(latitude, longitude);
+    } else if (selectedAddress) {
+      getStreetViewImageFromAddress(selectedAddress);
+    }
+  }, [selectedAddress, latitude, longitude]);
+
+  const getStreetViewImageFromAddress = (address: string) => {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: address }, (results, status) => {
+      if (status === "OK" && results) {
+        const coordinates = results[0].geometry.location;
+        const lat = coordinates.lat();
+        const lng = coordinates.lng();
+        getStreetViewImage(lat, lng)
+      } else {
+        console.error("Geocode was not successful: " + status);
+      }
+    });
+  };
+
+  const getStreetViewImage = (latitude: number, longitude: number) => {
+    const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Replace with your actual API key
+    if (YOUR_API_KEY) {
+      const url = `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${YOUR_API_KEY}`;
+      setStreetViewUrl(url);
+    } else {
+      console.error("Google Maps API key is missing.  Please set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.");
+    }
+  };
 
   const handleInputChange = (field: keyof Step1Data, value: string) => {
     const newData = { ...localData, [field]: value }
@@ -46,6 +82,7 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
     if (field === 'streetAddress' || field === 'city' || field === 'state') {
       const fullAddress = `${newData.streetAddress}, ${newData.city}, ${newData.state} ${newData.zipcode}`.trim()
       updateSelectedAddress(fullAddress)
+      getStreetViewImageFromAddress(fullAddress);
     }
   }
 
@@ -78,6 +115,13 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
             {selectedAddress || "Please confirm your address"}
           </h2>
         </div>
+
+        {/* Street View Image Display */}
+        {streetViewUrl && (
+          <div className="mb-8">
+            <img id="streetview-image" src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
+          </div>
+        )}
 
         {/* Google Map Display */}
         <div className="mb-8">
