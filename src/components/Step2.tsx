@@ -31,14 +31,18 @@ interface Step2Props {
   latitude?: number
   longitude?: number
   unitNumbers?: string[]
+  streetViewUrl?: string | null; // Added streetViewUrl prop
 }
 
-export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, latitude, longitude, unitNumbers }: Step2Props) {
+export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, unitNumbers, latitude, longitude, streetViewUrl }: Step2Props) {
   const [localData, setLocalData] = useState<Step2Data>(() => ({
     beds: formData.step2.beds || "",
     baths: formData.step2.baths || "",
     unitNumber: formData.step2.unitNumber || null,
   }))
+
+  // Removed the streetViewUrl state and useEffect for geocoding
+  // The streetViewUrl is now received as a prop
 
   useEffect(() => {
     setLocalData({
@@ -61,9 +65,7 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
   }
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
-  const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9+"]
-
-  const streetViewUrl = latitude && longitude ? `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}` : null;
+  const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.7", "8", "8.5", "9+"] // Corrected 7.7 to 7.5
 
   return (
     <div

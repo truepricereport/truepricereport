@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,17 +23,21 @@ interface Step3Props {
   onSubmit: () => void
   onPrevious: () => void
   selectedAddress: string
-  latitude?: number
+  latitude?: number // Keep latitude/longitude props if they are used for other purposes
   longitude?: number
+  streetViewUrl?: string | null; // Added streetViewUrl prop
 }
 
-export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude }: Step3Props) {
+export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
   const [localData, setLocalData] = useState<Step3Data>(() => ({
     firstName: formData.step3.firstName || "",
     lastName: formData.step3.lastName || "",
     phone: formData.step3.phone || "",
     email: formData.step3.email || ""
   }))
+
+   // Removed the streetViewUrl state and useEffect for geocoding
+  // The streetViewUrl is now received as a prop
 
   const handleInputChange = (field: keyof Step3Data, value: string) => {
     const newData = { ...localData, [field]: value }
@@ -48,8 +52,6 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
   }
 
   const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
-
-  const streetViewUrl = latitude && longitude ? `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}` : null;
 
   return (
     <div

@@ -29,6 +29,7 @@ interface FormData {
   selectedAddress: string
   latitude?: number
   longitude?: number
+  streetViewUrl?: string | null; // Added streetViewUrl to formData
   step1: {
     streetAddress: string
     city: string
@@ -65,6 +66,7 @@ export function MainFlow() {
     selectedAddress: "",
     latitude: undefined,
     longitude: undefined,
+    streetViewUrl: null, // Initialize streetViewUrl in state
     step1: {
       streetAddress: "",
       city: "",
@@ -95,7 +97,7 @@ export function MainFlow() {
     setFormData(prev => ({ ...prev, selectedAddress: address }))
   }
 
-  const handleAddressSubmit = (address: string, placeDetails?: PlaceDetails) => {
+  const handleAddressSubmit = (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => { // Modified to accept streetViewUrl
     // Get detailed address info if available
 
     let step1Data = { ...formData.step1, streetAddress: address }
@@ -115,12 +117,14 @@ export function MainFlow() {
         selectedAddress: address,
         latitude: placeDetails.latitude,
         longitude: placeDetails.longitude,
+        streetViewUrl: streetViewUrl, // Store streetViewUrl in formData
         step1: step1Data
       }))
     } else {
       setFormData(prev => ({
         ...prev,
         selectedAddress: address,
+        streetViewUrl: streetViewUrl, // Store streetViewUrl even if no placeDetails
         step1: step1Data
       }))
     }
@@ -329,6 +333,7 @@ export function MainFlow() {
           latitude={formData.latitude}
           longitude={formData.longitude}
           unitNumbers={formData.unitNumbers}
+          streetViewUrl={formData.streetViewUrl} // Pass streetViewUrl to Step2
         />
       )
 
@@ -342,11 +347,12 @@ export function MainFlow() {
           selectedAddress={formData.selectedAddress}
           latitude={formData.latitude}
           longitude={formData.longitude}
+          streetViewUrl={formData.streetViewUrl} // Pass streetViewUrl to Step3
         />
       )
 
     case "results":
-      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} />
+      return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} streetViewUrl={formData.streetViewUrl} /> // Pass streetViewUrl to ResultsPage
 
     default:
       return <HeroSection onAddressSubmit={handleAddressSubmit} />

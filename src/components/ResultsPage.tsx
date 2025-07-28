@@ -10,6 +10,7 @@ interface FormData {
     selectedAddress: string
     latitude?: number
     longitude?: number
+    streetViewUrl?: string | null; // Added streetViewUrl to FormData
     step1: {
         streetAddress: string
         city: string
@@ -36,13 +37,14 @@ interface FormData {
 interface ResultsPageProps {
     formData: FormData
     onUpdateDescription: (descriptionPart: string) => void
+    streetViewUrl?: string | null; // Added streetViewUrl prop
 }
 
-export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps) {
+export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: ResultsPageProps) {
     const firstName = formData.step3?.firstName || "Friend"
     const address = formData.step1?.streetAddress || "Your Property"
-    const latitude = formData?.latitude
-    const longitude = formData?.longitude
+    const latitude = formData?.latitude // Keep for GoogleMap component
+    const longitude = formData?.longitude // Keep for GoogleMap component
 
     // Get current time to determine greeting
     const currentHour = new Date().getHours()
@@ -106,7 +108,14 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
                     </p>
                 </div>
 
-                {/* Conditionally render Google Map */}
+                {/* Static Street View Image - Display here */}
+                 {streetViewUrl && (
+                    <div className="mb-8">
+                        <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
+                    </div>
+                )}
+
+                {/* Conditionally render Google Map (still uses lat/lng from formData) */}
                 {formData.step1.valuationStatus !== "unavailable" && (
                     <div className="mb-8">
                         <GoogleMap

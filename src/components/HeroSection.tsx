@@ -18,7 +18,7 @@ interface PlaceDetails {
 }
 
 interface HeroSectionProps {
-  onAddressSubmit: (address: string, placeDetails?: PlaceDetails) => void
+  onAddressSubmit: (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => void // Modified to include streetViewUrl
 }
 
 export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
@@ -99,7 +99,7 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
 
     if (selectedAddress) {
       if(placeDetailsFromAutocomplete) {
-         onAddressSubmit(selectedAddress, placeDetailsFromAutocomplete);
+         onAddressSubmit(selectedAddress, placeDetailsFromAutocomplete, streetViewUrl); // Pass streetViewUrl
       } else if (latitude && longitude) {
           // If no placeDetails from autocomplete, but geocoding in Hero gave us coords,
           // construct minimal placeDetails to pass for the main flow.
@@ -115,16 +115,16 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
                 latitude: latitude,
                 longitude: longitude
            };
-           onAddressSubmit(selectedAddress, geocodedPlaceDetails);
+           onAddressSubmit(selectedAddress, geocodedPlaceDetails, streetViewUrl); // Pass streetViewUrl
       } else {
            // Fallback to just the address string if no coords from autocomplete or geocoding
-           onAddressSubmit(selectedAddress);
+           onAddressSubmit(selectedAddress, undefined, streetViewUrl); // Pass streetViewUrl
       }
     } else {
       // Fallback: try to get value from any input in the form
       const addressInput = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement;
       const currentAddress = addressInput?.value || "Demo Property Address";
-      onAddressSubmit(currentAddress.trim());
+      onAddressSubmit(currentAddress.trim(), undefined, streetViewUrl); // Pass streetViewUrl
     }
   };
 
