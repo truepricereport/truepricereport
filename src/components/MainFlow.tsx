@@ -43,6 +43,7 @@ interface FormData {
   step2: {
     beds: string
     baths: string
+    unitNumber: string | null // add unitNumber in formdata
   }
   step3: {
     firstName: string
@@ -50,6 +51,7 @@ interface FormData {
     phone: string
     email: string
   }
+  unitNumbers?: string[] // add unitNumbers to form data
 }
 
 interface LeadInfo {
@@ -72,14 +74,16 @@ export function MainFlow() {
     },
     step2: {
       beds: "",
-      baths: ""
+      baths: "",
+      unitNumber: null,
     },
     step3: {
       firstName: "",
       lastName: "",
       phone: "",
       email: ""
-    }
+    },
+    unitNumbers: []
   })
   const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null) // To store email and initial description
 
@@ -185,8 +189,12 @@ export function MainFlow() {
       const data = await response.json();
       console.log("CoreLogic API Response via Proxy:", data);
 
+      let unitNumbers: string[] = []; // Initialize unitNumbers
+
       if (response.status === 200) {
         // Valuation available
+        unitNumbers = data.unitNumbers || []; // Extract unitNumbers from the response
+
         setFormData(prev => ({
           ...prev,
           step1: {
@@ -195,7 +203,8 @@ export function MainFlow() {
             lowEstimate: data.lowEstimate || undefined,
             highEstimate: data.highEstimate || undefined,
             valuationStatus: "available"
-          }
+          },
+          unitNumbers: unitNumbers // Store unitNumbers in formData
         }));
       } else if (response.status === 404 || response.status === 500) { // Also handle 500
         // Valuation unavailable or internal server error
@@ -207,7 +216,8 @@ export function MainFlow() {
             lowEstimate: undefined,
             highEstimate: undefined,
             valuationStatus: "unavailable"
-          }
+          },
+          unitNumbers: [] // Ensure unitNumbers is always an array
         }));
         // Log 500 errors to the console, but do not show an alert
         if (response.status === 500) {
@@ -238,7 +248,7 @@ export function MainFlow() {
   const handleFinalSubmit = async () => {
     console.log("Final form data:", formData)
 
-    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}`
+    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}${formData.step2.unitNumber ? ", Unit Number: " + formData.step2.unitNumber : ""}`;
 
     const payload = {
       // primary_agent_id is now handled securely by the Lambda function
@@ -318,6 +328,7 @@ export function MainFlow() {
           selectedAddress={formData.selectedAddress}
           latitude={formData.latitude}
           longitude={formData.longitude}
+          unitNumbers={formData.unitNumbers}
         />
       )
 

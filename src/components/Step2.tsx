@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step2Data {
   beds: string
   baths: string
+  unitNumber: string | null
 }
 
 interface FormData {
@@ -30,13 +30,23 @@ interface Step2Props {
   selectedAddress: string
   latitude?: number
   longitude?: number
+  unitNumbers?: string[]
 }
 
-export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, latitude, longitude }: Step2Props) {
+export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, latitude, longitude, unitNumbers }: Step2Props) {
   const [localData, setLocalData] = useState<Step2Data>(() => ({
     beds: formData.step2.beds || "",
-    baths: formData.step2.baths || ""
+    baths: formData.step2.baths || "",
+    unitNumber: formData.step2.unitNumber || null,
   }))
+
+  useEffect(() => {
+    setLocalData({
+      beds: formData.step2.beds || "",
+      baths: formData.step2.baths || "",
+      unitNumber: formData.step2.unitNumber || null,
+    });
+  }, [formData]);
 
   const handleSelectChange = (field: keyof Step2Data, value: string) => {
     const newData = { ...localData, [field]: value }
@@ -52,6 +62,8 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
   const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9+"]
+
+  const streetViewUrl = latitude && longitude ? `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}` : null;
 
   return (
     <div
@@ -71,17 +83,35 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 2: Home Basics</h3>
 
-        {/* Google Map Display */}
-        <div className="mb-8">
-          <GoogleMap
-            address={selectedAddress}
-            latitude={latitude}
-            longitude={longitude}
-            className="shadow-md"
-          />
-        </div>
+        {/* Static Street View Image */}
+        {streetViewUrl && (
+          <div className="mb-8">
+            <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
+          </div>
+        )}
 
         <div className="space-y-6">
+          {/* Unit Number Dropdown */}
+          {unitNumbers && unitNumbers.length > 0 && (
+            <div>
+              <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
+                Unit Number
+              </Label>
+              <Select value={localData.unitNumber || ""} onValueChange={(value) => handleSelectChange("unitNumber", value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select unit number" />
+                </SelectTrigger>
+                <SelectContent>
+                  {unitNumbers.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <Label htmlFor="beds" className="text-gray-700 font-medium">
               Beds

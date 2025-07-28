@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { GoogleMap } from "@/components/GoogleMap"
 
 interface Step3Data {
   firstName: string
@@ -50,6 +49,8 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
 
   const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
 
+  const streetViewUrl = latitude && longitude ? `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}` : null;
+
   return (
     <div
       className="min-h-[80vh] flex items-center justify-center px-6 py-20 bg-cover bg-center"
@@ -68,15 +69,12 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 3: Confirm Your Information</h3>
 
-        {/* Google Map Display */}
-        <div className="mb-8">
-          <GoogleMap
-            address={selectedAddress}
-            latitude={latitude}
-            longitude={longitude}
-            className="shadow-md"
-          />
-        </div>
+        {/* Static Street View Image */}
+        {streetViewUrl && (
+          <div className="mb-8">
+            <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
