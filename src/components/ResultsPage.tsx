@@ -59,6 +59,9 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
     const [showMessagePopup, setShowMessagePopup] = useState(false)
     const [buttonMessage, setButtonMessage] = useState('Because the automated valuation was unavailable, we recommend contacting us for a personalized valuation.')
+    const [cashOfferClicked, setCashOfferClicked] = useState(false);
+    const [refinanceClicked, setRefinanceClicked] = useState(false);
+    const [contactAgentClicked, setContactAgentClicked] = useState(false);
 
     // Function to close the message popup
     const closeMessagePopup = () => {
@@ -152,9 +155,36 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                             <div className="space-y-3">
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                                    onClick={() => setShowMessagePopup(true)}
+                                    onClick={() => {
+                                        setButtonMessage("I am interested in getting a Cash Offer.");
+                                        setShowMessagePopup(true);
+                                        setCashOfferClicked(true);
+                                    }}
+                                    disabled={cashOfferClicked}
                                 >
-                                    Contact Us For Personalized Valuation
+                                    Get a Cash Offer
+                                </Button>
+                                <Button
+                                    className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                                    onClick={() => {
+                                        setButtonMessage("I am interested in Refinancing.");
+                                        setShowMessagePopup(true);
+                                        setRefinanceClicked(true);
+                                    }}
+                                    disabled={refinanceClicked}
+                                >
+                                    Refinance
+                                </Button>
+                                <Button
+                                    className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
+                                    onClick={() => {
+                                        setButtonMessage("I am interested in contacting a Real Estate Agent.");
+                                        setShowMessagePopup(true);
+                                        setContactAgentClicked(true);
+                                    }}
+                                    disabled={contactAgentClicked}
+                                >
+                                    Contact Real Estate Agent
                                 </Button>
                             </div>
                         )}
