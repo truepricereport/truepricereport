@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TraditionalAutocomplete } from "@/components/AddressAutocomplete"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface PlaceDetails {
   fullAddress: string
@@ -23,16 +23,44 @@ interface HeroSectionProps {
 
 export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
   const [selectedAddress, setSelectedAddress] = useState("")
+  const [latitude, setLatitude] = useState<number | undefined>(undefined)
+  const [longitude, setLongitude] = useState<number | undefined>(undefined)
+  const [streetViewUrl, setStreetViewUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (latitude && longitude) {
+      getStreetViewImage(latitude, longitude)
+    } else {
+        setStreetViewUrl(null); // Clear image if no coordinates
+    }
+  }, [latitude, longitude])
+
+  const getStreetViewImage = (latitude: number, longitude: number) => {
+    const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Replace with your actual API key
+    if (YOUR_API_KEY) {
+      const url = `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${YOUR_API_KEY}`;
+      setStreetViewUrl(url);
+    } else {
+      console.error("Google Maps API key is missing.  Please set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.");
+      setStreetViewUrl(null);
+    }
+  };
 
   const handleAddressSelect = (address: string, placeDetails?: PlaceDetails) => {
     setSelectedAddress(address)
     console.log("Selected address:", address)
-    if (placeDetails) {
+    if (placeDetails && placeDetails.latitude && placeDetails.longitude) {
       console.log("Place details:", placeDetails)
+      setLatitude(placeDetails.latitude)
+      setLongitude(placeDetails.longitude)
 
       // The placeDetails now comes already formatted from PlaceAutocomplete component
       // Store detailed info for later use
       ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails
+    } else {
+        setLatitude(undefined);
+        setLongitude(undefined);
+        setStreetViewUrl(null); // Explicitly clear streetViewUrl if no valid place details/coordinates
     }
   }
 
@@ -80,11 +108,19 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
         </ul>
 
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-          <TraditionalAutocomplete
-            onAddressSelect={handleAddressSelect}
-            placeholder="Enter your home address"
-            className="flex-1 h-12 px-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#0f6c0c] focus:border-transparent"
-          />
+            <div className="flex-1">
+                {/* Street View Image Display */}
+                {streetViewUrl && (
+                    <div className="mb-4">
+                        <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md w-full" />
+                    </div>
+                )}
+                <TraditionalAutocomplete
+                    onAddressSelect={handleAddressSelect}
+                    placeholder="Enter your home address"
+                    className="w-full h-12 px-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#0f6c0c] focus:border-transparent"
+                />
+            </div>
           <Button
             type="submit"
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white h-12 px-8 rounded font-medium whitespace-nowrap"
