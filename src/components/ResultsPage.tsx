@@ -55,32 +55,8 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
         greeting = "Good Night!"
     }
 
-    const [cashOfferClicked, setCashOfferClicked] = useState(false)
-    const [refinanceClicked, setRefinanceClicked] = useState(false)
-    const [contactAgentClicked, setContactAgentClicked] = useState(false)
     const [showMessagePopup, setShowMessagePopup] = useState(false)
-    const [buttonMessage, setButtonMessage] = useState('')
-
-    const handleCashOfferClick = () => {
-        console.log("Get a Cash Offer button clicked.")
-        setButtonMessage("I am interested in getting a Cash Offer.")
-        setShowMessagePopup(true)
-        setCashOfferClicked(true)
-    }
-
-    const handleRefinanceClick = () => {
-        console.log("Refinance button clicked.")
-        setButtonMessage("I am interested in Refinancing.")
-        setShowMessagePopup(true)
-        setRefinanceClicked(true)
-    }
-
-    const handleContactAgentClick = () => {
-        console.log("Contact Real Estate Agent button clicked.")
-        setButtonMessage("I am interested in contacting a Real Estate Agent.")
-        setShowMessagePopup(true)
-        setContactAgentClicked(true)
-    }
+    const [buttonMessage, setButtonMessage] = useState('Because the automated valuation was unavailable, we recommend contacting us for a personalized valuation.')
 
     // Function to close the message popup
     const closeMessagePopup = () => {
@@ -93,8 +69,7 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
         if (formData.step1.valuationStatus === "unavailable") {
             timer = setTimeout(() => {
                 setShowMessagePopup(true);
-                setButtonMessage('Because the automated valuation was unavailable, we recommend contacting us for a personalized valuation.')
-            }, 10000); // 10 seconds
+            }, 20000); // 20 seconds
         }
 
         // Cleanup function to clear the timeout if the component unmounts or the valuation status changes
@@ -131,15 +106,17 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
                     </p>
                 </div>
 
-                {/* Google Map Display */}
-                <div className="mb-8">
-                    <GoogleMap
-                        address={formData.selectedAddress}
-                        latitude={latitude}
-                        longitude={longitude}
-                        className="shadow-md"
-                    />
-                </div>
+                {/* Conditionally render Google Map */}
+                {formData.step1.valuationStatus !== "unavailable" && (
+                    <div className="mb-8">
+                        <GoogleMap
+                            address={formData.selectedAddress}
+                            latitude={latitude}
+                            longitude={longitude}
+                            className="shadow-md"
+                        />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Home Value Card */}
@@ -161,29 +138,17 @@ export function ResultsPage({ formData, onUpdateDescription }: ResultsPageProps)
                             </div>
                         )}
 
-                        <div className="space-y-3">
-                            <Button
-                                className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                                onClick={handleCashOfferClick}
-                                disabled={cashOfferClicked}
-                            >
-                                Get a Cash Offer
-                            </Button>
-                            <Button
-                                className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                                onClick={handleRefinanceClick}
-                                disabled={refinanceClicked}
-                            >
-                                Refinance
-                            </Button>
-                            <Button
-                                className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
-                                onClick={handleContactAgentClick}
-                                disabled={contactAgentClicked}
-                            >
-                                Contact Real Estate Agent
-                            </Button>
-                        </div>
+                        {/* Conditionally render buttons */}
+                        {formData.step1.valuationStatus !== "unavailable" && (
+                            <div className="space-y-3">
+                                <Button
+                                    className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                                    onClick={() => setShowMessagePopup(true)}
+                                >
+                                    Contact Us For Personalized Valuation
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
