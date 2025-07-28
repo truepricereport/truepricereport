@@ -15,6 +15,8 @@ import {
 interface Step2Data {
   beds: string
   baths: string
+  yearBuilt: string
+  squareFoot: string
   unitNumber: string | null
 }
 
@@ -38,6 +40,8 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
   const [localData, setLocalData] = useState<Step2Data>(() => ({
     beds: formData.step2.beds || "",
     baths: formData.step2.baths || "",
+    yearBuilt: formData.step2.yearBuilt || "",
+    squareFoot: formData.step2.squareFoot || "",
     unitNumber: formData.step2.unitNumber || null,
   }))
 
@@ -48,9 +52,16 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
     setLocalData({
       beds: formData.step2.beds || "",
       baths: formData.step2.baths || "",
+      yearBuilt: formData.step2.yearBuilt || "",
+      squareFoot: formData.step2.squareFoot || "",
       unitNumber: formData.step2.unitNumber || null,
     });
   }, [formData]);
+
+    useEffect(() => {
+        // Triggered when unitNumbers changes
+        console.log("Unit numbers updated:", unitNumbers);
+    }, [unitNumbers]);
 
   const handleSelectChange = (field: keyof Step2Data, value: string) => {
     const newData = { ...localData, [field]: value }
@@ -59,13 +70,15 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
   }
 
   const handleNext = () => {
-    if (localData.beds && localData.baths) {
+    if (localData.beds && localData.baths && localData.yearBuilt && localData.squareFoot) {
       onNext()
     }
   }
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
   const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.7", "8", "8.5", "9+"] // Corrected 7.7 to 7.5
+  const yearBuiltOptions = Array.from({ length: 124 }, (_, i) => String(2024 - i)); // Years from 1900 to 2024
+  const squareFootOptions = ["500-1000", "1000-1500", "1500-2000", "2000-2500", "2500-3000", "3000+"];
 
   return (
     <div
@@ -93,26 +106,41 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
         )}
 
         <div className="space-y-6">
-          {/* Unit Number Dropdown */}
-          {unitNumbers && unitNumbers.length > 0 && (
-            <div>
-              <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
-                Unit Number
-              </Label>
-              <Select value={localData.unitNumber || ""} onValueChange={(value) => handleSelectChange("unitNumber", value)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select unit number" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unitNumbers.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+        <div>
+            <Label htmlFor="yearBuilt" className="text-gray-700 font-medium">
+              Year Built
+            </Label>
+            <Select value={localData.yearBuilt} onValueChange={(value) => handleSelectChange("yearBuilt", value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select year built" />
+              </SelectTrigger>
+              <SelectContent>
+                {yearBuiltOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="squareFoot" className="text-gray-700 font-medium">
+              Square Footage
+            </Label>
+            <Select value={localData.squareFoot} onValueChange={(value) => handleSelectChange("squareFoot", value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select square foot" />
+              </SelectTrigger>
+              <SelectContent>
+                {squareFootOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div>
             <Label htmlFor="beds" className="text-gray-700 font-medium">
@@ -149,6 +177,26 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
               </SelectContent>
             </Select>
           </div>
+          {/* Unit Number Dropdown */}
+          {unitNumbers && unitNumbers.length > 0 && (
+            <div>
+              <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
+                Unit Number
+              </Label>
+              <Select value={localData.unitNumber || ""} onValueChange={(value) => handleSelectChange("unitNumber", value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select unit number" />
+                </SelectTrigger>
+                <SelectContent>
+                  {unitNumbers.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-4 mt-8">
@@ -161,7 +209,7 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
           </Button>
           <Button
             onClick={handleNext}
-            disabled={!localData.beds || !localData.baths}
+            disabled={!localData.beds || !localData.baths || !localData.yearBuilt || !localData.squareFoot}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Next

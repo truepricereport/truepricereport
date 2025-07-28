@@ -44,6 +44,8 @@ interface FormData {
   step2: {
     beds: string
     baths: string
+    yearBuilt: string
+    squareFoot: string
     unitNumber: string | null // add unitNumber in formdata
   }
   step3: {
@@ -77,6 +79,8 @@ export function MainFlow() {
     step2: {
       beds: "",
       baths: "",
+      yearBuilt: "",
+      squareFoot: "",
       unitNumber: null,
     },
     step3: {
@@ -167,6 +171,10 @@ export function MainFlow() {
 
   const handleStep1NextSubmit = async (addressData: FormData['step1']) => {
     console.log("Attempting to fetch property info for Step 1 CONFIRM button:", addressData);
+    
+    // Immediately transition to Step 2
+    goToStep2();
+
     try {
       const corelogicApiGatewayUrl = process.env.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL;
       if (!corelogicApiGatewayUrl) {
@@ -239,7 +247,7 @@ export function MainFlow() {
       } else {
          console.error("CoreLogic API Error via Proxy:", data);
          alert(`Failed to get property estimate. Unexpected error: ${response.status}`);
-         return { success: false, error: data };
+        return { success: false, error: data };
       }
 
     } catch (error) {
@@ -252,7 +260,7 @@ export function MainFlow() {
   const handleFinalSubmit = async () => {
     console.log("Final form data:", formData)
 
-    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}${formData.step2.unitNumber ? ", Unit Number: " + formData.step2.unitNumber : ""}`;
+    const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Year Built: ${formData.step2.yearBuilt}, Square Foot: ${formData.step2.squareFoot} Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}${formData.step2.unitNumber ? ", Unit Number: " + formData.step2.unitNumber : ""}`;
 
     const payload = {
       // primary_agent_id is now handled securely by the Lambda function
