@@ -46,38 +46,87 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
     }
   };
 
-  const handleAddressSelect = (address: string, placeDetails?: PlaceDetails) => {
-    setSelectedAddress(address)
-    console.log("Selected address:", address)
-    if (placeDetails && placeDetails.latitude && placeDetails.longitude) {
-      console.log("Place details:", placeDetails)
-      setLatitude(placeDetails.latitude)
-      setLongitude(placeDetails.longitude)
-
-      // The placeDetails now comes already formatted from PlaceAutocomplete component
-      // Store detailed info for later use
-      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails
-    } else {
-        setLatitude(undefined);
-        setLongitude(undefined);
-        setStreetViewUrl(null); // Explicitly clear streetViewUrl if no valid place details/coordinates
+  const geocodeAddressForStreetView = (address: string) => {
+    if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+      console.error("Google Maps Geocoder not loaded.");
+      setStreetViewUrl(null);
+      return;
     }
-  }
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: address }, (results, status) => {
+      if (status === "OK" && results && results[0]) {
+        const location = results[0].geometry.location;
+        setLatitude(location.lat());
+        setLongitude(location.lng());
+      } else {
+        console.error("Geocode was not successful for Street View: " + status);
+        setStreetViewUrl(null);
+      }
+    });
+  };
+
+  const handleAddressSelect = (address: string, placeDetails?: PlaceDetails) => {
+    setSelectedAddress(address);
+    console.log("Selected address:", address);
+
+    // Always attempt to geocode the selected address for Street View
+    if (address) {
+      geocodeAddressForStreetView(address);
+    } else {
+      setLatitude(undefined);
+      setLongitude(undefined);
+      setStreetViewUrl(null);
+    }
+
+    // Still store placeDetails if available for the main flow (Step 1, etc.)
+    if (placeDetails) {
+        console.log("Place details from autocomplete:", placeDetails)
+      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails;
+      // If placeDetails has coords, they will be used for the main flow,
+      // but the street view in Hero will use coords from geocoding for consistency with Step 1.
+      // If placeDetails does NOT have coords, we will rely on the geocoding result for the main flow too.
+      // This needs careful handling in MainFlow to prioritize placeDetails coords if available.
+    } else {
+         ;(window as unknown as Record<string, unknown>).selectedAddressDetails = undefined; // Clear stored details
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // If an address has been selected via the PlaceAutocomplete, use it
+    // Prioritize placeDetails if available from autocomplete
+    const placeDetailsFromAutocomplete = (window as unknown as Record<string, unknown>).selectedAddressDetails as PlaceDetails | undefined;
+
     if (selectedAddress) {
-      const placeDetails = (window as unknown as Record<string, unknown>).selectedAddressDetails as PlaceDetails | undefined;
-      onAddressSubmit(selectedAddress, placeDetails)
+      if(placeDetailsFromAutocomplete) {
+         onAddressSubmit(selectedAddress, placeDetailsFromAutocomplete);
+      } else if (latitude && longitude) {
+          // If no placeDetails from autocomplete, but geocoding in Hero gave us coords,
+          // construct minimal placeDetails to pass for the main flow.
+          // This assumes the geocoded coords are the ones we want to carry forward.
+           const geocodedPlaceDetails: PlaceDetails = {
+                fullAddress: selectedAddress,
+                streetNumber: '', // Geocoding might not break this down reliably
+                route: '',
+                city: '',
+                state: '',
+                country: '',
+                zipcode: '',
+                latitude: latitude,
+                longitude: longitude
+           };
+           onAddressSubmit(selectedAddress, geocodedPlaceDetails);
+      } else {
+           // Fallback to just the address string if no coords from autocomplete or geocoding
+           onAddressSubmit(selectedAddress);
+      }
     } else {
       // Fallback: try to get value from any input in the form
-      const addressInput = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement
-      const currentAddress = addressInput?.value || "Demo Property Address"
-      onAddressSubmit(currentAddress.trim())
+      const addressInput = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement;
+      const currentAddress = addressInput?.value || "Demo Property Address";
+      onAddressSubmit(currentAddress.trim());
     }
-  }
+  };
 
   return (
     <section
