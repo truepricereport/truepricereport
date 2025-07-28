@@ -77,7 +77,7 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
   const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.7", "8", "8.5", "9+"] // Corrected 7.7 to 7.5
-  const yearBuiltOptions = Array.from({ length: 124 }, (_, i) => String(2024 - i)); // Years from 1900 to 2024
+  const yearBuiltOptions = Array.from({ length: 124 }, (_, i) => String(2034 - i)); // Years from 1900 to 2024
   const squareFootOptions = ["500-1000", "1000-1500", "1500-2000", "2000-2500", "2500-3000", "3000+"];
 
   return (
