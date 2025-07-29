@@ -22,22 +22,24 @@ interface Step1Props {
 }
 
 const step1Schema = z.object({
-  streetAddress: z.string().min(1, { message: 'Street address is required' }),
-  city: z.string().min(1, { message: 'City is required' }),
-  state: z.string().min(1, { message: 'State is required' }),
-  country: z.string().min(1, { message: 'Country is required' }),
-  zipcode: z.string().min(1, { message: 'Zip code is required' }),
+  streetAddress: z.string()
+    .min(1, { message: 'Street address is required' })
+    .max(100, { message: 'Street address cannot exceed 100 characters' }),
+  city: z.string()
+    .min(1, { message: 'City is required' })
+    .max(100, { message: 'City cannot exceed 100 characters' }),
+  state: z.string()
+    .min(1, { message: 'State is required' })
+    .max(100, { message: 'State cannot exceed 100 characters' }),
+  country: z.string()
+    .min(1, { message: 'Country is required' })
+    .max(100, { message: 'Country cannot exceed 100 characters' }),
+  zipcode: z.string()
+    .min(1, { message: 'Zip code is required' })
+    .regex(/^d{5}$/, { message: 'Invalid zip code format (e.g., 12345)' }),
 })
 
 export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit, latitude, longitude }: Step1Props) {
-  //const [localData, setLocalData] = useState<Step1Data>(() => ({
-  //  streetAddress: selectedAddress || formData.step1.streetAddress || "",
-  //  city: formData.step1.city || "",
-  //  state: formData.step1.state || "",
-  //  country: formData.step1.country || "USA",
-  //  zipcode: formData.step1.zipcode || ""
-  //}))
-
   const [streetViewUrl, setStreetViewUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -72,19 +74,6 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
     }
   }
 
-  //const handleInputChange = (field: keyof Step1Data, value: string) => {
-  //  const newData = { ...localData, [field]: value }
-  //  setLocalData(newData)
-  //  updateFormData({ step1: newData })
-
-  //  // Update the displayed address for the map
-  //  if (field === 'streetAddress' || field === 'city' || field === 'state') {
-  //    const fullAddress = `${newData.streetAddress}, ${newData.city}, ${newData.state} ${newData.zipcode}`.trim()
-  //    updateSelectedAddress(fullAddress)
-  //    getStreetViewImageFromAddress(fullAddress)
-  //  }
-  //}
-
   const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
@@ -98,13 +87,10 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
 
   const handleNext = async (data: z.infer<typeof step1Schema>) => {
     console.log("Step 1 CONFIRM button clicked. Triggering onStep1NextSubmit.")
-    //await onStep1NextSubmit(localData)
     await onStep1NextSubmit(data)
     updateFormData({ step1: data })
     onNext()
   }
-
-  //const isFormValid = localData.streetAddress && localData.city && localData.state && localData.zipcode
 
   return (
     <div
@@ -213,8 +199,6 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
 
           <Button
             type="submit"
-            //onClick={handleNext}
-            //disabled={!isFormValid}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-8 py-3 rounded-md font-medium mt-8 w-full disabled:bg-gray-400"
           >
             CONFIRM
