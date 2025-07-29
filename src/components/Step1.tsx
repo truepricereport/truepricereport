@@ -35,7 +35,8 @@ const step1Schema = z.object({
     .min(1, { message: 'Country is required' })
     .max(100, { message: 'Country cannot exceed 100 characters' }),
   zipcode: z.string()
-    .min(1, { message: 'Zip code is required' })
+    .min(5, { message: 'Zip code must be at least 5 digits' })
+    .max(5, { message: 'Zip code cannot exceed 5 digits' })
     .regex(/^d{5}$/, { message: 'Invalid zip code format (e.g., 12345)' }),
 })
 
