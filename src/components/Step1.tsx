@@ -1,31 +1,33 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleMap } from "@/components/GoogleMap"
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 interface Step1Props {
-  formData: any //FormData
-  updateFormData: (data: any) => void //(data: { step1: Step1Data }) => void
+  formData: any
+  updateFormData: (data: any) => void
   onNext: () => void
   selectedAddress: string
   updateSelectedAddress: (address: string) => void
-  onStep1NextSubmit: (addressData: any) => void //(addressData: Step1Data) => void // New prop for Step 1 API call
+  onStep1NextSubmit: (addressData: any) => void
   latitude?: number
   longitude?: number
-  streetViewUrl?: string | null; // Add prop for static Street View URL
+  streetViewUrl?: string | null
+  onAddressUpdate: (data: { latitude: number; longitude: number; streetViewUrl: string | null }) => void
 }
 
 const step1Schema = z.object({
   streetAddress: z.string()
     .min(1, { message: 'Street address is required' })
     .max(100, { message: 'Street address cannot exceed 100 characters' }),
+  unitNumber: z.string().optional(),
   city: z.string()
     .min(1, { message: 'City is required' })
     .max(100, { message: 'City cannot exceed 100 characters' }),
@@ -50,16 +52,14 @@ export function Step1({
   onStep1NextSubmit,
   latitude,
   longitude,
-  streetViewUrl, // Receive streetViewUrl prop
+  streetViewUrl,
+  onAddressUpdate,
 }: Step1Props) {
-
-  // Removed local streetViewUrl state and effects
-  // Removed getStreetViewImageFromAddress and getStreetViewImage functions
-
-  const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<z.infer<typeof step1Schema>>({
+  const { register, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
-      streetAddress: selectedAddress || formData.step1?.streetAddress || "",
+      streetAddress: formData.step1?.streetAddress || "",
+      unitNumber: formData.step1?.unitNumber || "",
       city: formData.step1?.city || "",
       state: formData.step1?.state || "",
       country: formData.step1?.country || "USA",
@@ -67,11 +67,72 @@ export function Step1({
     }
   })
 
+  // Watch all fields to reconstruct the full address.
+  const watchedFields = useWatch({ control });
+
+  // This effect populates the form when the initial data arrives.
+  // It only runs when the core formData.step1 object changes, not on every selectedAddress change.
+  useEffect(() => {
+    setValue('streetAddress', formData.step1.streetAddress || selectedAddress || "");
+    setValue('city', formData.step1.city || "");
+    setValue('state', formData.step1.state || "");
+    setValue('zipcode', formData.step1.zipcode || "");
+    setValue('country', formData.step1.country || "USA");
+  }, [formData.step1, setValue]);
+
+  // This effect reconstructs the address and updates the parent state (for display).
+  // This is what was causing the loop, but it's now safe because the effect above is more controlled.
+  useEffect(() => {
+    const { streetAddress, unitNumber, city, state, zipcode, country } = watchedFields;
+    // Only update if the necessary fields are present
+    if (streetAddress && city && state && zipcode && country) {
+        const displayAddress = `${streetAddress}${unitNumber ? ` #${unitNumber}` : ''}, ${city}, ${state} ${zipcode}, ${country}`;
+        // To prevent the loop, we check if the update is actually needed.
+        if (displayAddress !== selectedAddress) {
+            updateSelectedAddress(displayAddress);
+        }
+    }
+  }, [watchedFields, updateSelectedAddress, selectedAddress]);
+
+  const handleVerifyAddress = async () => {
+    const values = getValues();
+    const fullAddress = `${values.streetAddress}${values.unitNumber ? ` #${values.unitNumber}` : ''}, ${values.city}, ${values.state} ${values.zipcode}, ${values.country}`;
+    
+    if (window.google) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: fullAddress }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          const location = results[0].geometry.location;
+          const lat = location.lat();
+          const lng = location.lng();
+          const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+          const newStreetViewUrl = YOUR_API_KEY ? `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${lat},${lng}&key=${YOUR_API_KEY}`: null;
+          
+          onAddressUpdate({
+            latitude: lat,
+            longitude: lng,
+            streetViewUrl: newStreetViewUrl,
+          });
+          updateSelectedAddress(fullAddress);
+        } else {
+          alert('Could not verify the address. Please check the details and try again.');
+        }
+      });
+    } else {
+      alert('Google Maps is not available. Please try again later.');
+    }
+  };
+
   const handleNext = async (data: z.infer<typeof step1Schema>) => {
-    console.log("Step 1 CONFIRM button clicked. Triggering onStep1NextSubmit.")
-    await onStep1NextSubmit(data)
-    updateFormData({ step1: data })
-    onNext()
+    // Reconstruct the final address from form data to ensure it's up-to-date
+    const finalAddress = {
+      ...data,
+      streetAddress: `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}`
+    }
+    
+    await onStep1NextSubmit(finalAddress);
+    updateFormData({ step1: finalAddress });
+    onNext();
   }
 
   return (
@@ -96,14 +157,13 @@ export function Step1({
           </h2>
         </div>
 
-        {/* Removed separate Street View Image Display */}
-
-        {/* Google Map Display (now handles static view if streetViewUrl is provided) */}
         <div className="mb-8">
           <GoogleMap
             address={selectedAddress}
+            latitude={latitude}
+            longitude={longitude}
             className="shadow-md"
-            streetViewUrl={streetViewUrl} // Pass streetViewUrl to GoogleMap
+            streetViewUrl={streetViewUrl}
           />
         </div>
 
@@ -112,7 +172,7 @@ export function Step1({
         <form onSubmit={handleSubmit(handleNext)} className="space-y-4">
           <div>
             <Label htmlFor="streetAddress" className="text-gray-700 font-medium">
-              Street Address{" "}
+              Street Address
               {errors.streetAddress && <span className="text-gray-500">*</span>}
             </Label>
             <Input
@@ -124,8 +184,19 @@ export function Step1({
           </div>
 
           <div>
+            <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
+              Unit Number (Optional)
+            </Label>
+            <Input
+              id="unitNumber"
+              className="mt-1"
+              {...register("unitNumber")}
+            />
+          </div>
+
+          <div>
             <Label htmlFor="city" className="text-gray-700 font-medium">
-              City{" "}
+              City
               {errors.city && <span className="text-gray-500">*</span>}
             </Label>
             <Input
@@ -138,7 +209,7 @@ export function Step1({
 
           <div>
             <Label htmlFor="state" className="text-gray-700 font-medium">
-              State{" "}
+              State
               {errors.state && <span className="text-gray-500">*</span>}
             </Label>
             <Input
@@ -151,7 +222,7 @@ export function Step1({
 
           <div>
             <Label htmlFor="country" className="text-gray-700 font-medium">
-              Country{" "}
+              Country
               {errors.country && <span className="text-gray-500">*</span>}
             </Label>
             <Input
@@ -164,7 +235,7 @@ export function Step1({
 
           <div>
             <Label htmlFor="zipcode" className="text-gray-700 font-medium">
-              Zipcode{" "}
+              Zipcode
               {errors.zipcode && <span className="text-gray-500">*</span>}
             </Label>
             <Input
@@ -174,6 +245,14 @@ export function Step1({
             />
             {errors.zipcode && <p className="text-red-500 text-sm mt-1">{errors.zipcode.message}</p>}
           </div>
+          
+          <Button
+            type="button"
+            onClick={handleVerifyAddress}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-medium"
+          >
+            Verify Address
+          </Button>
 
           <Button
             type="submit"

@@ -136,6 +136,17 @@ export function MainFlow() {
     setCurrentStep("step1")
   }
 
+  const handleAddressUpdate = (newAddressData: {
+    latitude: number;
+    longitude: number;
+    streetViewUrl: string | null;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      ...newAddressData,
+    }));
+  };
+  
   const sendLeadToBrivity = async (payload: any, isUpdate: boolean = false) => {
     console.log(`Sending lead data to Brivity (isUpdate: ${isUpdate}):`, payload)
     try {
@@ -328,6 +339,7 @@ export function MainFlow() {
           updateSelectedAddress={updateSelectedAddress}
           onStep1NextSubmit={handleStep1NextSubmit}
           streetViewUrl={formData.streetViewUrl} // Pass streetViewUrl to Step1
+          onAddressUpdate={handleAddressUpdate} // Pass the new handler to Step1
         />
       )
 
@@ -336,6 +348,9 @@ export function MainFlow() {
         <Step2
           formData={formData}
           updateFormData={updateFormData}
+  //Next, I'll modify `Step1.tsx` to re-introduce the reverse geocoding functionality and the "Verify Address" button. I will also make sure to call the new `onAddressUpdate` handler when the address is successfully geocoded.
+
+//I'll read the `src/components/Step1.tsx` file first.
           onNext={goToStep3}
           onPrevious={goToStep1}
           selectedAddress={formData.selectedAddress}
