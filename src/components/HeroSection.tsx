@@ -156,7 +156,7 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
               </div>
             )}
             <label htmlFor="address">
-              Enter your home address{" "}
+              {" "}
               {errors.address && <span className="text-gray-500">*</span>}
             </label>
             <TraditionalAutocomplete

@@ -27,10 +27,10 @@ const step3Schema = z.object({
   lastName: z.string()
     .min(1, { message: 'Last name is required' })
     .max(50, { message: 'Last name cannot exceed 50 characters' }),
-  phone: z.string()
-    .min(1, { message: 'Phone number is required' })
-    .regex(/^\+?[0-9]*$/, { message: 'Invalid phone number format' }),
-  email: z.string().email({ message: 'Invalid email format' }),
+    phone: z.string()
+    .regex(/^\+1\d{10}$/, { message: 'Invalid phone number format (e.g., +15551234567)' })
+    .nonempty({ message: 'Phone number is required' }),
+    email: z.string().email({ message: 'Invalid email format' }),
 })
 
 export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
