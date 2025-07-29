@@ -37,7 +37,7 @@ const step1Schema = z.object({
   zipcode: z.string()
     .min(5, { message: 'Zip code must be at least 5 digits' })
     .max(5, { message: 'Zip code cannot exceed 5 digits' })
-    .regex(/^d{5}$/, { message: 'Invalid zip code format (e.g., 12345)' }),
+    .regex(/^\d{5}$/, { message: 'Invalid zip code format (e.g., 12345)' }),
 })
 
 export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit, latitude, longitude }: Step1Props) {
