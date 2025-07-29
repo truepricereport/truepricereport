@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ReactNode } from 'react';
 
 interface MessagePopupProps {
   onUpdateDescription: (message: string) => void
-  buttonMessage: string
+  popupTitle: string
   onClose: () => void
-  children?: ReactNode;
+  defaultMessage: string
+  isValuationUnavailable: boolean
 }
 
-export function MessagePopup({ onUpdateDescription, buttonMessage, onClose, children }: MessagePopupProps) {
-  const [message, setMessage] = useState('')
+export function MessagePopup({ onUpdateDescription, popupTitle, onClose, defaultMessage, isValuationUnavailable }: MessagePopupProps) {
+  const [message, setMessage] = useState(defaultMessage)
+
+  useEffect(() => {
+    setMessage(defaultMessage);
+  }, [defaultMessage]);
 
   const sendMessage = () => {
     onUpdateDescription(message)
@@ -20,7 +25,7 @@ export function MessagePopup({ onUpdateDescription, buttonMessage, onClose, chil
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-gray-500 bg-opacity-75 flex justify-center items-center">
       <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">{buttonMessage} - Send a Message</h2>
+        <h2 className="text-2xl font-bold mb-4">{popupTitle}</h2>
         <textarea
           className="w-full h-32 p-2 border rounded-md mb-4"
           placeholder="Enter your message here..."
@@ -28,8 +33,7 @@ export function MessagePopup({ onUpdateDescription, buttonMessage, onClose, chil
           onChange={(e) => setMessage(e.target.value)}
         ></textarea>
         <div className="flex justify-end">
-          {children}
-          <Button className="bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium" onClick={sendMessage}>Send Message</Button>
+          <Button className="bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium" onClick={sendMessage}>{isValuationUnavailable ? 'Contact Us For Personalized Valuation' : 'Send Message'}</Button>
         </div>
       </div>
     </div>

@@ -25,9 +25,6 @@ interface FormData {
     step2: {
         beds: string
         baths: string
-        yearBuilt: string
-        squareFoot: string
-        unitNumber: string | null
     }
     step3: {
         firstName: string
@@ -48,6 +45,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     const address = formData.step1?.streetAddress || "Your Property"
     const latitude = formData?.latitude // Keep for GoogleMap component
     const longitude = formData?.longitude // Keep for GoogleMap component
+    const valuationUnavailable = formData.step1.valuationStatus === "unavailable";
 
     // Get current time to determine greeting
     const currentHour = new Date().getHours()
@@ -61,7 +59,6 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     }
 
     const [showMessagePopup, setShowMessagePopup] = useState(false)
-    const [buttonMessage, setButtonMessage] = useState('Because the automated valuation was unavailable, we recommend contacting us for a personalized valuation.')
     const [cashOfferClicked, setCashOfferClicked] = useState(false);
     const [refinanceClicked, setRefinanceClicked] = useState(false);
     const [contactAgentClicked, setContactAgentClicked] = useState(false);
@@ -74,7 +71,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     useEffect(() => {
         let timer: NodeJS.Timeout;
 
-        if (formData.step1.valuationStatus === "unavailable") {
+        if (valuationUnavailable) {
             timer = setTimeout(() => {
                 setShowMessagePopup(true);
             }, 20000); // 20 seconds
@@ -82,11 +79,11 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
         // Cleanup function to clear the timeout if the component unmounts or the valuation status changes
         return () => clearTimeout(timer);
-    }, [formData.step1.valuationStatus]);
+    }, [valuationUnavailable]);
 
     // Function to handle sending the combined message
     const handleSendMessage = (message: string) => {
-        onUpdateDescription(`${buttonMessage} ${message}`);
+        onUpdateDescription(message);
         setShowMessagePopup(false);
     }
 
@@ -159,8 +156,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
-                                        setButtonMessage("I am interested in getting a Cash Offer.");
-                                        setShowMessagePopup(true);
+                                        onUpdateDescription("I am interested in getting a Cash Offer.");
                                         setCashOfferClicked(true);
                                     }}
                                     disabled={cashOfferClicked}
@@ -170,8 +166,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
-                                        setButtonMessage("I am interested in Refinancing.");
-                                        setShowMessagePopup(true);
+                                        onUpdateDescription("I am interested in Refinancing.");
                                         setRefinanceClicked(true);
                                     }}
                                     disabled={refinanceClicked}
@@ -181,8 +176,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
-                                        setButtonMessage("I am interested in contacting a Real Estate Agent.");
-                                        setShowMessagePopup(true);
+                                        onUpdateDescription("I am interested in contacting a Real Estate Agent.");
                                         setContactAgentClicked(true);
                                     }}
                                     disabled={contactAgentClicked}
@@ -209,24 +203,6 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.baths}</div>
                                 <div className="text-gray-600">Bathrooms</div>
-                            </div>
-                        )}
-                         {formData.step2.yearBuilt && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.yearBuilt}</div>
-                                <div className="text-gray-600">Year Built</div>
-                            </div>
-                        )}
-                        {formData.step2.squareFoot && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.squareFoot}</div>
-                                <div className="text-gray-600">Sq. Ft.</div>
-                            </div>
-                        )}
-                        {formData.step2.unitNumber && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.unitNumber}</div>
-                                <div className="text-gray-600">Unit #</div>
                             </div>
                         )}
                         {formData.step1.valuationStatus === "available" && formData.step1.lowEstimate && (
@@ -256,17 +232,12 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                 {showMessagePopup && (
                     <MessagePopup
                         onUpdateDescription={handleSendMessage}
-                        buttonMessage={buttonMessage}
+                        popupTitle= {valuationUnavailable ? 'Contact Us For Personalized Valuation' : 'Send a Message'}
                         onClose={closeMessagePopup}
-                    >
-                      <Button
-                          className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                          onClick={() => handleSendMessage("")}
-                      >
-                          Contact Us For Personalized Valuation
-                      </Button>
-                    </MessagePopup>
-)}
+                        defaultMessage= {valuationUnavailable ? 'I am interested in a personalized valuation.' : ''}
+                        isValuationUnavailable = {valuationUnavailable}
+                    />
+                )}
             </div>
         </div>
     )
