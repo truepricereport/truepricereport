@@ -25,6 +25,9 @@ interface FormData {
     step2: {
         beds: string
         baths: string
+        yearBuilt: string
+        squareFoot: string
+        unitNumber: string | null
     }
     step3: {
         firstName: string
@@ -151,7 +154,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                         )}
 
                         {/* Conditionally render buttons */}
-                        {formData.step1.valuationStatus !== "unavailable" && (
+                        {formData.step1.valuationStatus === "available" && (
                             <div className="space-y-3">
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
@@ -208,6 +211,24 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <div className="text-gray-600">Bathrooms</div>
                             </div>
                         )}
+                         {formData.step2.yearBuilt && (
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.yearBuilt}</div>
+                                <div className="text-gray-600">Year Built</div>
+                            </div>
+                        )}
+                        {formData.step2.squareFoot && (
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.squareFoot}</div>
+                                <div className="text-gray-600">Sq. Ft.</div>
+                            </div>
+                        )}
+                        {formData.step2.unitNumber && (
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.unitNumber}</div>
+                                <div className="text-gray-600">Unit #</div>
+                            </div>
+                        )}
                         {formData.step1.valuationStatus === "available" && formData.step1.lowEstimate && (
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
@@ -237,8 +258,15 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                         onUpdateDescription={handleSendMessage}
                         buttonMessage={buttonMessage}
                         onClose={closeMessagePopup}
-                    />
-                )}
+                    >
+                      <Button
+                          className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                          onClick={() => handleSendMessage("")}
+                      >
+                          Contact Us For Personalized Valuation
+                      </Button>
+                    </MessagePopup>
+)}
             </div>
         </div>
     )

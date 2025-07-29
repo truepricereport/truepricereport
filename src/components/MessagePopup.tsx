@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
+import { ReactNode } from 'react';
 
 interface MessagePopupProps {
   onUpdateDescription: (message: string) => void
   buttonMessage: string
   onClose: () => void
+  children?: ReactNode;
 }
 
-export function MessagePopup({ onUpdateDescription, buttonMessage, onClose }: MessagePopupProps) {
+export function MessagePopup({ onUpdateDescription, buttonMessage, onClose, children }: MessagePopupProps) {
   const [message, setMessage] = useState('')
 
   const sendMessage = () => {
@@ -26,6 +28,7 @@ export function MessagePopup({ onUpdateDescription, buttonMessage, onClose }: Me
           onChange={(e) => setMessage(e.target.value)}
         ></textarea>
         <div className="flex justify-end">
+          {children}
           <Button className="bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium" onClick={sendMessage}>Send Message</Button>
         </div>
       </div>

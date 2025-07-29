@@ -67,6 +67,7 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
     const newData = { ...localData, [field]: value }
     setLocalData(newData)
     updateFormData({ step2: newData })
+    console.log("Step2Data updated:", newData) // ADDED CONSOLE LOG
   }
 
   const handleNext = () => {
