@@ -12,6 +12,7 @@ declare global {
 interface PlaceDetails {
   fullAddress: string
   streetNumber: string
+  unitNumber: string // Added unitNumber
   route: string
   city: string
   state: string
@@ -104,9 +105,18 @@ export function TraditionalAutocomplete({
             return component?.long_name || ""
           }
 
+          // New function to extract unit number
+          const getUnitNumber = () => {
+            const component = place.address_components?.find(comp =>
+              comp.types.includes("subpremise")
+            )
+            return component?.long_name || ""
+          }
+
           const detailedAddress: PlaceDetails = {
             fullAddress: address,
             streetNumber: getComponent("street_number"),
+            unitNumber: getUnitNumber(), // Added unitNumber
             route: getComponent("route"),
             city: getComponent("locality") || getComponent("administrative_area_level_2"),
             state: getComponent("administrative_area_level_1"),

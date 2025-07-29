@@ -16,6 +16,7 @@ type FlowStep = "hero" | "step1" | "step2" | "step3" | "results"
 interface PlaceDetails {
   fullAddress: string
   streetNumber: string
+  unitNumber: string // include unitNumber
   route: string
   city: string
   state: string
@@ -113,7 +114,9 @@ export function MainFlow() {
         city: placeDetails.city || "",
         state: placeDetails.state || "",
         country: placeDetails.country || "USA",
-        zipcode: placeDetails.zipcode || ""
+        zipcode: placeDetails.zipcode || "",
+        //include unitNumber
+        unitNumber: placeDetails.unitNumber || ""
       }
 
       setFormData(prev => ({
