@@ -10,20 +10,26 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
 interface Step3Props {
-  formData: any //FormData
-  updateFormData: (data: any) => void //(data: { step3: Step3Data }) => void
+  formData: any
+  updateFormData: (data: any) => void
   onSubmit: () => void
   onPrevious: () => void
   selectedAddress: string
-  latitude?: number // Keep latitude/longitude props if they are used for other purposes
+  latitude?: number
   longitude?: number
   streetViewUrl?: string | null
 }
 
 const step3Schema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
-  phone: z.string().min(1, { message: 'Phone number is required' }),
+  firstName: z.string()
+    .min(1, { message: 'First name is required' })
+    .max(50, { message: 'First name cannot exceed 50 characters' }),
+  lastName: z.string()
+    .min(1, { message: 'Last name is required' })
+    .max(50, { message: 'Last name cannot exceed 50 characters' }),
+  phone: z.string()
+    .min(1, { message: 'Phone number is required' })
+    .regex(/^\+?[0-9]*$/, { message: 'Invalid phone number format' }),
   email: z.string().email({ message: 'Invalid email format' }),
 })
 
@@ -38,28 +44,10 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
     }
   })
 
-  //const [localData, setLocalData] = useState<Step3Data>(() => ({
-  //  firstName: formData.step3.firstName || "",
-  //  lastName: formData.step3.lastName || "",
-  //  phone: formData.step3.phone || "",
-  //  email: formData.step3.email || ""
-  //}))
-
-  // Removed the streetViewUrl state and useEffect for geocoding
-  // The streetViewUrl is now received as a prop
-
-  //const handleInputChange = (field: keyof Step3Data, value: string) => {
-  //  const newData = { ...localData, [field]: value }
-  //  setLocalData(newData)
-  //  updateFormData({ step3: newData })
-  //}
-
   const handleValidSubmit = (data: z.infer<typeof step3Schema>) => {
     updateFormData({ step3: data })
     onSubmit()
   }
-
-  //const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
 
   return (
     <div
@@ -152,7 +140,6 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
           </Button>
           <Button
             onClick={handleSubmit(handleValidSubmit)}
-            //disabled={!isFormValid}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Submit
