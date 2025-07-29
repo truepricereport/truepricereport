@@ -32,7 +32,7 @@ export function TraditionalAutocomplete({
   placeholder = "Enter your address",
   className
 }: TraditionalAutocompleteProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null) as React.MutableRefObject<HTMLInputElement | null>;
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
   const scriptRef = useRef<HTMLScriptElement | null>(null)
 
