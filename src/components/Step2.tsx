@@ -52,18 +52,9 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
     console.log("Unit numbers updated:", unitNumbers)
   }, [unitNumbers])
 
-  //const handleSelectChange = (field: keyof Step2Data, value: string) => {
-  //  const newData = { ...localData, [field]: value }
-  //  setLocalData(newData)
-  //  updateFormData({ step2: newData })
-  //  console.log("Step2Data updated:", newData) // ADDED CONSOLE LOG
-  //}
-
   const handleNext = (data: z.infer<typeof step2Schema>) => {
-    //if (localData.beds && localData.baths && localData.yearBuilt && localData.squareFoot) {
     updateFormData({ step2: data })
     onNext()
-    //}
   }
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
@@ -238,7 +229,6 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
           </Button>
           <Button
             onClick={handleSubmit(handleNext)}
-            //disabled={!localData.beds || !localData.baths || !localData.yearBuilt || !localData.squareFoot}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Next
