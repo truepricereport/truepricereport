@@ -1,9 +1,14 @@
+/**
+ * This is the Hero Section of the application.
+ */
+
 "use client"
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TraditionalAutocomplete } from "@/components/AddressAutocomplete"
 import { useState, useEffect } from "react"
+import { useForm } from 'react-hook-form'
 
 interface PlaceDetails {
   fullAddress: string
@@ -18,10 +23,11 @@ interface PlaceDetails {
 }
 
 interface HeroSectionProps {
-  onAddressSubmit: (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => void // Modified to include streetViewUrl
+  onAddressSubmit: (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => void
 }
 
 export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<{ address: string }>({})
   const [selectedAddress, setSelectedAddress] = useState("")
   const [latitude, setLatitude] = useState<number | undefined>(undefined)
   const [longitude, setLongitude] = useState<number | undefined>(undefined)
@@ -31,102 +37,88 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
     if (latitude && longitude) {
       getStreetViewImage(latitude, longitude)
     } else {
-        setStreetViewUrl(null); // Clear image if no coordinates
+      setStreetViewUrl(null)
     }
   }, [latitude, longitude])
 
   const getStreetViewImage = (latitude: number, longitude: number) => {
-    const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Replace with your actual API key
+    const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     if (YOUR_API_KEY) {
-      const url = `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${YOUR_API_KEY}`;
-      setStreetViewUrl(url);
+      const url = `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${YOUR_API_KEY}`
+      setStreetViewUrl(url)
     } else {
-      console.error("Google Maps API key is missing.  Please set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.");
-      setStreetViewUrl(null);
+      console.error("Google Maps API key is missing.  Please set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.")
+      setStreetViewUrl(null)
     }
-  };
+  }
 
   const geocodeAddressForStreetView = (address: string) => {
     if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
-      console.error("Google Maps Geocoder not loaded.");
-      setStreetViewUrl(null);
-      return;
+      console.error("Google Maps Geocoder not loaded.")
+      setStreetViewUrl(null)
+      return
     }
-    const geocoder = new window.google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder()
     geocoder.geocode({ address: address }, (results, status) => {
       if (status === "OK" && results && results[0]) {
-        const location = results[0].geometry.location;
-        setLatitude(location.lat());
-        setLongitude(location.lng());
+        const location = results[0].geometry.location
+        setLatitude(location.lat())
+        setLongitude(location.lng())
       } else {
-        console.error("Geocode was not successful for Street View: " + status);
-        setStreetViewUrl(null);
+        console.error("Geocode was not successful for Street View: " + status)
+        setStreetViewUrl(null)
       }
-    });
-  };
+    })
+  }
 
   const handleAddressSelect = (address: string, placeDetails?: PlaceDetails) => {
-    setSelectedAddress(address);
-    console.log("Selected address:", address);
+    setSelectedAddress(address)
+    setValue('address', address) // Set the value in React Hook Form
+    console.log("Selected address:", address)
 
-    // Always attempt to geocode the selected address for Street View
     if (address) {
-      geocodeAddressForStreetView(address);
+      geocodeAddressForStreetView(address)
     } else {
-      setLatitude(undefined);
-      setLongitude(undefined);
-      setStreetViewUrl(null);
+      setLatitude(undefined)
+      setLongitude(undefined)
+      setStreetViewUrl(null)
     }
 
-    // Still store placeDetails if available for the main flow (Step 1, etc.)
     if (placeDetails) {
-        console.log("Place details from autocomplete:", placeDetails)
-      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails;
-      // If placeDetails has coords, they will be used for the main flow,
-      // but the street view in Hero will use coords from geocoding for consistency with Step 1.
-      // If placeDetails does NOT have coords, we will rely on the geocoding result for the main flow too.
-      // This needs careful handling in MainFlow to prioritize placeDetails coords if available.
+      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails
     } else {
-         ;(window as unknown as Record<string, unknown>).selectedAddressDetails = undefined; // Clear stored details
+      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = undefined
     }
-  };
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = (data: { address: string }) => {
+    const placeDetailsFromAutocomplete = (window as unknown as Record<string, unknown>).selectedAddressDetails as PlaceDetails | undefined
 
-    // Prioritize placeDetails if available from autocomplete
-    const placeDetailsFromAutocomplete = (window as unknown as Record<string, unknown>).selectedAddressDetails as PlaceDetails | undefined;
-
-    if (selectedAddress) {
-      if(placeDetailsFromAutocomplete) {
-         onAddressSubmit(selectedAddress, placeDetailsFromAutocomplete, streetViewUrl); // Pass streetViewUrl
+    if (data.address) {
+      if (placeDetailsFromAutocomplete) {
+        onAddressSubmit(data.address, placeDetailsFromAutocomplete, streetViewUrl)
       } else if (latitude && longitude) {
-          // If no placeDetails from autocomplete, but geocoding in Hero gave us coords,
-          // construct minimal placeDetails to pass for the main flow.
-          // This assumes the geocoded coords are the ones we want to carry forward.
-           const geocodedPlaceDetails: PlaceDetails = {
-                fullAddress: selectedAddress,
-                streetNumber: '', // Geocoding might not break this down reliably
-                route: '',
-                city: '',
-                state: '',
-                country: '',
-                zipcode: '',
-                latitude: latitude,
-                longitude: longitude
-           };
-           onAddressSubmit(selectedAddress, geocodedPlaceDetails, streetViewUrl); // Pass streetViewUrl
+        const geocodedPlaceDetails: PlaceDetails = {
+          fullAddress: data.address,
+          streetNumber: '',
+          route: '',
+          city: '',
+          state: '',
+          country: '',
+          zipcode: '',
+          latitude: latitude,
+          longitude: longitude
+        }
+        onAddressSubmit(data.address, geocodedPlaceDetails, streetViewUrl)
       } else {
-           // Fallback to just the address string if no coords from autocomplete or geocoding
-           onAddressSubmit(selectedAddress, undefined, streetViewUrl); // Pass streetViewUrl
+        onAddressSubmit(data.address, undefined, streetViewUrl)
       }
     } else {
-      // Fallback: try to get value from any input in the form
-      const addressInput = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement;
-      const currentAddress = addressInput?.value || "Demo Property Address";
-      onAddressSubmit(currentAddress.trim(), undefined, streetViewUrl); // Pass streetViewUrl
+      const addressInput = document.querySelector('input') as HTMLInputElement
+      const currentAddress = addressInput?.value || "Demo Property Address"
+      onAddressSubmit(currentAddress.trim(), undefined, streetViewUrl)
     }
-  };
+  }
 
   return (
     <section
@@ -156,20 +148,26 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
           <li>• What Would a Cash Offer Look Like?</li>
         </ul>
 
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-            <div className="flex-1">
-                {/* Street View Image Display */}
-                {streetViewUrl && (
-                    <div className="mb-4">
-                        <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md w-full" />
-                    </div>
-                )}
-                <TraditionalAutocomplete
-                    onAddressSelect={handleAddressSelect}
-                    placeholder="Enter your home address"
-                    className="w-full h-12 px-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#0f6c0c] focus:border-transparent"
-                />
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+          <div className="flex-1">
+            {streetViewUrl && (
+              <div className="mb-4">
+                <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md w-full" />
+              </div>
+            )}
+            <label htmlFor="address">
+              Enter your home address{" "}
+              {errors.address && <span className="text-gray-500">*</span>}
+            </label>
+            <TraditionalAutocomplete
+              id="address"
+              onAddressSelect={handleAddressSelect}
+              placeholder="Enter your home address"
+              className="w-full h-12 px-4 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#0f6c0c] focus:border-transparent"
+              {...register('address', { required: 'Address is required' })}
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>}
+          </div>
           <Button
             type="submit"
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white h-12 px-8 rounded font-medium whitespace-nowrap"
