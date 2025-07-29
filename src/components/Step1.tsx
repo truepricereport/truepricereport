@@ -96,6 +96,14 @@ export function Step1({
 
   const handleVerifyAddress = async () => {
     const values = getValues();
+    // Update form values before geocoding
+    setValue('streetAddress', values.streetAddress);
+    setValue('unitNumber', values.unitNumber);
+    setValue('city', values.city);
+    setValue('state', values.state);
+    setValue('zipcode', values.zipcode);
+    setValue('country', values.country);
+
     const fullAddress = `${values.streetAddress}${values.unitNumber ? ` #${values.unitNumber}` : ''}, ${values.city}, ${values.state} ${values.zipcode}, ${values.country}`;
     
     if (window.google) {
@@ -159,6 +167,7 @@ export function Step1({
 
         <div className="mb-8">
           <GoogleMap
+            key={selectedAddress}
             address={selectedAddress}
             latitude={latitude}
             longitude={longitude}
