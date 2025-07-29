@@ -11,75 +11,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-interface Step2Data {
-  beds: string
-  baths: string
-  yearBuilt: string
-  squareFoot: string
-  unitNumber: string | null
-}
-
-interface FormData {
-  step2: Step2Data
-}
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 interface Step2Props {
-  formData: FormData
-  updateFormData: (data: { step2: Step2Data }) => void
+  formData: any //FormData
+  updateFormData: (data: any) => void //(data: { step2: Step2Data }) => void
   onNext: () => void
   onPrevious: () => void
   selectedAddress: string
   latitude?: number
   longitude?: number
   unitNumbers?: string[]
-  streetViewUrl?: string | null; // Added streetViewUrl prop
+  streetViewUrl?: string | null
 }
 
-export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, unitNumbers, latitude, longitude, streetViewUrl }: Step2Props) {
-  const [localData, setLocalData] = useState<Step2Data>(() => ({
-    beds: formData.step2.beds || "",
-    baths: formData.step2.baths || "",
-    yearBuilt: formData.step2.yearBuilt || "",
-    squareFoot: formData.step2.squareFoot || "",
-    unitNumber: formData.step2.unitNumber || null,
-  }))
+const step2Schema = z.object({
+  beds: z.string().min(1, { message: 'Number of beds is required' }),
+  baths: z.string().min(1, { message: 'Number of baths is required' }),
+  yearBuilt: z.string().min(1, { message: 'Year built is required' }),
+  squareFoot: z.string().min(1, { message: 'Square footage is required' }),
+  unitNumber: z.string().nullable(),
+})
 
-  // Removed the streetViewUrl state and useEffect for geocoding
-  // The streetViewUrl is now received as a prop
+export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAddress, unitNumbers, latitude, longitude, streetViewUrl }: Step2Props) {
+  const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<z.infer<typeof step2Schema>>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: {
+      beds: formData.step2?.beds || "",
+      baths: formData.step2?.baths || "",
+      yearBuilt: formData.step2?.yearBuilt || "",
+      squareFoot: formData.step2?.squareFoot || "",
+      unitNumber: formData.step2?.unitNumber || null,
+    }
+  })
 
   useEffect(() => {
-    setLocalData({
-      beds: formData.step2.beds || "",
-      baths: formData.step2.baths || "",
-      yearBuilt: formData.step2.yearBuilt || "",
-      squareFoot: formData.step2.squareFoot || "",
-      unitNumber: formData.step2.unitNumber || null,
-    });
-  }, [formData]);
+    // Triggered when unitNumbers changes
+    console.log("Unit numbers updated:", unitNumbers)
+  }, [unitNumbers])
 
-    useEffect(() => {
-        // Triggered when unitNumbers changes
-        console.log("Unit numbers updated:", unitNumbers);
-    }, [unitNumbers]);
+  //const handleSelectChange = (field: keyof Step2Data, value: string) => {
+  //  const newData = { ...localData, [field]: value }
+  //  setLocalData(newData)
+  //  updateFormData({ step2: newData })
+  //  console.log("Step2Data updated:", newData) // ADDED CONSOLE LOG
+  //}
 
-  const handleSelectChange = (field: keyof Step2Data, value: string) => {
-    const newData = { ...localData, [field]: value }
-    setLocalData(newData)
-    updateFormData({ step2: newData })
-    console.log("Step2Data updated:", newData) // ADDED CONSOLE LOG
-  }
-
-  const handleNext = () => {
-    if (localData.beds && localData.baths && localData.yearBuilt && localData.squareFoot) {
-      onNext()
-    }
+  const handleNext = (data: z.infer<typeof step2Schema>) => {
+    //if (localData.beds && localData.baths && localData.yearBuilt && localData.squareFoot) {
+    updateFormData({ step2: data })
+    onNext()
+    //}
   }
 
   const bedsOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9+"]
   const bathsOptions = ["1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.7", "8", "8.5", "9+"] // Corrected 7.7 to 7.5
-  const yearBuiltOptions = Array.from({ length: 124 }, (_, i) => String(2034 - i)); // Years from 1900 to 2024
-  const squareFootOptions = ["500-1000", "1000-1500", "1500-2000", "2000-2500", "2500-3000", "3000+"];
+  const yearBuiltOptions = Array.from({ length: 124 }, (_, i) => String(2034 - i)) // Years from 1900 to 2024
+  const squareFootOptions = ["500-1000", "1000-1500", "1500-2000", "2000-2500", "2500-3000", "3000+"]
 
   return (
     <div
@@ -106,77 +96,109 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
           </div>
         )}
 
-        <div className="space-y-6">
-        <div>
+        <form onSubmit={handleSubmit(handleNext)} className="space-y-6">
+          <div>
             <Label htmlFor="yearBuilt" className="text-gray-700 font-medium">
-              Year Built
+              Year Built{" "}
+              {errors.yearBuilt && <span className="text-gray-500">*</span>}
             </Label>
-            <Select value={localData.yearBuilt} onValueChange={(value) => handleSelectChange("yearBuilt", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select year built" />
-              </SelectTrigger>
-              <SelectContent>
-                {yearBuiltOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="yearBuilt"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select year built" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearBuiltOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.yearBuilt && <p className="text-red-500 text-sm mt-1">{errors.yearBuilt.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="squareFoot" className="text-gray-700 font-medium">
-              Square Footage
+              Square Footage{" "}
+              {errors.squareFoot && <span className="text-gray-500">*</span>}
             </Label>
-            <Select value={localData.squareFoot} onValueChange={(value) => handleSelectChange("squareFoot", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select square foot" />
-              </SelectTrigger>
-              <SelectContent>
-                {squareFootOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="squareFoot"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select square foot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {squareFootOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.squareFoot && <p className="text-red-500 text-sm mt-1">{errors.squareFoot.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="beds" className="text-gray-700 font-medium">
-              Beds
+              Beds{" "}
+              {errors.beds && <span className="text-gray-500">*</span>}
             </Label>
-            <Select value={localData.beds} onValueChange={(value) => handleSelectChange("beds", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select number of bedrooms" />
-              </SelectTrigger>
-              <SelectContent>
-                {bedsOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="beds"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select number of bedrooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bedsOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.beds && <p className="text-red-500 text-sm mt-1">{errors.beds.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="baths" className="text-gray-700 font-medium">
-              Baths
+              Baths{" "}
+              {errors.baths && <span className="text-gray-500">*</span>}
             </Label>
-            <Select value={localData.baths} onValueChange={(value) => handleSelectChange("baths", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select number of bathrooms" />
-              </SelectTrigger>
-              <SelectContent>
-                {bathsOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="baths"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select number of bathrooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bathsOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.baths && <p className="text-red-500 text-sm mt-1">{errors.baths.message}</p>}
           </div>
           {/* Unit Number Dropdown */}
           {unitNumbers && unitNumbers.length > 0 && (
@@ -184,21 +206,27 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
               <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
                 Unit Number
               </Label>
-              <Select value={localData.unitNumber || ""} onValueChange={(value) => handleSelectChange("unitNumber", value)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select unit number" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unitNumbers.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="unitNumber"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select unit number" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unitNumbers.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           )}
-        </div>
+        </form>
 
         <div className="flex gap-4 mt-8">
           <Button
@@ -209,8 +237,8 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
             Previous
           </Button>
           <Button
-            onClick={handleNext}
-            disabled={!localData.beds || !localData.baths || !localData.yearBuilt || !localData.squareFoot}
+            onClick={handleSubmit(handleNext)}
+            //disabled={!localData.beds || !localData.baths || !localData.yearBuilt || !localData.squareFoot}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Next
