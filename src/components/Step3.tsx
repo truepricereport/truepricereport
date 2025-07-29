@@ -5,53 +5,61 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-interface Step3Data {
-  firstName: string
-  lastName: string
-  phone: string
-  email: string
-}
-
-interface FormData {
-  step3: Step3Data
-}
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 interface Step3Props {
-  formData: FormData
-  updateFormData: (data: { step3: Step3Data }) => void
+  formData: any //FormData
+  updateFormData: (data: any) => void //(data: { step3: Step3Data }) => void
   onSubmit: () => void
   onPrevious: () => void
   selectedAddress: string
   latitude?: number // Keep latitude/longitude props if they are used for other purposes
   longitude?: number
-  streetViewUrl?: string | null; // Added streetViewUrl prop
+  streetViewUrl?: string | null
 }
 
-export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
-  const [localData, setLocalData] = useState<Step3Data>(() => ({
-    firstName: formData.step3.firstName || "",
-    lastName: formData.step3.lastName || "",
-    phone: formData.step3.phone || "",
-    email: formData.step3.email || ""
-  }))
+const step3Schema = z.object({
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+  phone: z.string().min(1, { message: 'Phone number is required' }),
+  email: z.string().email({ message: 'Invalid email format' }),
+})
 
-   // Removed the streetViewUrl state and useEffect for geocoding
+export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
+  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof step3Schema>>({
+    resolver: zodResolver(step3Schema),
+    defaultValues: {
+      firstName: formData.step3?.firstName || "",
+      lastName: formData.step3?.lastName || "",
+      phone: formData.step3?.phone || "",
+      email: formData.step3?.email || ""
+    }
+  })
+
+  //const [localData, setLocalData] = useState<Step3Data>(() => ({
+  //  firstName: formData.step3.firstName || "",
+  //  lastName: formData.step3.lastName || "",
+  //  phone: formData.step3.phone || "",
+  //  email: formData.step3.email || ""
+  //}))
+
+  // Removed the streetViewUrl state and useEffect for geocoding
   // The streetViewUrl is now received as a prop
 
-  const handleInputChange = (field: keyof Step3Data, value: string) => {
-    const newData = { ...localData, [field]: value }
-    setLocalData(newData)
-    updateFormData({ step3: newData })
+  //const handleInputChange = (field: keyof Step3Data, value: string) => {
+  //  const newData = { ...localData, [field]: value }
+  //  setLocalData(newData)
+  //  updateFormData({ step3: newData })
+  //}
+
+  const handleValidSubmit = (data: z.infer<typeof step3Schema>) => {
+    updateFormData({ step3: data })
+    onSubmit()
   }
 
-  const handleSubmit = () => {
-    if (localData.firstName && localData.lastName && localData.phone && localData.email) {
-      onSubmit()
-    }
-  }
-
-  const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
+  //const isFormValid = localData.firstName && localData.lastName && localData.phone && localData.email
 
   return (
     <div
@@ -78,61 +86,61 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
           </div>
         )}
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit(handleValidSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="firstName" className="text-gray-700 font-medium">
-              First Name
+              First Name{" "}
+              {errors.firstName && <span className="text-gray-500">*</span>}
             </Label>
             <Input
               id="firstName"
-              value={localData.firstName}
-              onChange={(e) => handleInputChange("firstName", e.target.value)}
               className="mt-1"
-              required
+              {...register("firstName")}
             />
+            {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="lastName" className="text-gray-700 font-medium">
-              Last Name
+              Last Name{" "}
+              {errors.lastName && <span className="text-gray-500">*</span>}
             </Label>
             <Input
               id="lastName"
-              value={localData.lastName}
-              onChange={(e) => handleInputChange("lastName", e.target.value)}
               className="mt-1"
-              required
+              {...register("lastName")}
             />
+            {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="phone" className="text-gray-700 font-medium">
-              Phone
+              Phone{" "}
+              {errors.phone && <span className="text-gray-500">*</span>}
             </Label>
             <Input
               id="phone"
               type="tel"
-              value={localData.phone}
-              onChange={(e) => handleInputChange("phone", e.target.value)}
               className="mt-1"
-              required
+              {...register("phone")}
             />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="email" className="text-gray-700 font-medium">
-              Email
+              Email{" "}
+              {errors.email && <span className="text-gray-500">*</span>}
             </Label>
             <Input
               id="email"
               type="email"
-              value={localData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
               className="mt-1"
-              required
+              {...register("email")}
             />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
           </div>
-        </div>
+        </form>
 
         <div className="flex gap-4 mt-8">
           <Button
@@ -143,8 +151,8 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
             Previous
           </Button>
           <Button
-            onClick={handleSubmit}
-            disabled={!isFormValid}
+            onClick={handleSubmit(handleValidSubmit)}
+            //disabled={!isFormValid}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Submit
