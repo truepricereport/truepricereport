@@ -19,6 +19,7 @@ interface Step1Props {
   onStep1NextSubmit: (addressData: any) => void //(addressData: Step1Data) => void // New prop for Step 1 API call
   latitude?: number
   longitude?: number
+  streetViewUrl?: string | null; // Add prop for static Street View URL
 }
 
 const step1Schema = z.object({
@@ -40,40 +41,20 @@ const step1Schema = z.object({
     .regex(/^\d{5}$/, { message: 'Invalid zip code format (e.g., 12345)' }),
 })
 
-export function Step1({ formData, updateFormData, onNext, selectedAddress, updateSelectedAddress, onStep1NextSubmit, latitude, longitude }: Step1Props) {
-  const [streetViewUrl, setStreetViewUrl] = useState<string | null>(null)
+export function Step1({
+  formData,
+  updateFormData,
+  onNext,
+  selectedAddress,
+  updateSelectedAddress,
+  onStep1NextSubmit,
+  latitude,
+  longitude,
+  streetViewUrl, // Receive streetViewUrl prop
+}: Step1Props) {
 
-  useEffect(() => {
-    if (latitude && longitude) {
-      getStreetViewImage(latitude, longitude)
-    } else if (selectedAddress) {
-      getStreetViewImageFromAddress(selectedAddress)
-    }
-  }, [selectedAddress, latitude, longitude])
-
-  const getStreetViewImageFromAddress = (address: string) => {
-    const geocoder = new google.maps.Geocoder()
-    geocoder.geocode({ address: address }, (results, status) => {
-      if (status === "OK" && results) {
-        const coordinates = results[0].geometry.location
-        const lat = coordinates.lat()
-        const lng = coordinates.lng()
-        getStreetViewImage(lat, lng)
-      } else {
-        console.error("Geocode was not successful: " + status)
-      }
-    })
-  }
-
-  const getStreetViewImage = (latitude: number, longitude: number) => {
-    const YOUR_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-    if (YOUR_API_KEY) {
-      const url = `https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${latitude},${longitude}&key=${YOUR_API_KEY}`
-      setStreetViewUrl(url)
-    } else {
-      console.error("Google Maps API key is missing.  Please set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.")
-    }
-  }
+  // Removed local streetViewUrl state and effects
+  // Removed getStreetViewImageFromAddress and getStreetViewImage functions
 
   const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
@@ -115,18 +96,14 @@ export function Step1({ formData, updateFormData, onNext, selectedAddress, updat
           </h2>
         </div>
 
-        {/* Street View Image Display */}
-        {streetViewUrl && (
-          <div className="mb-8">
-            <img id="streetview-image" src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
-          </div>
-        )}
+        {/* Removed separate Street View Image Display */}
 
-        {/* Google Map Display */}
+        {/* Google Map Display (now handles static view if streetViewUrl is provided) */}
         <div className="mb-8">
           <GoogleMap
             address={selectedAddress}
             className="shadow-md"
+            streetViewUrl={streetViewUrl} // Pass streetViewUrl to GoogleMap
           />
         </div>
 

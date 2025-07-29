@@ -36,7 +36,7 @@ export default function RootLayout({
         {/* Google Maps JavaScript API Script */}
         {googleMapsApiKey && (
           <Script
-            src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places,geocoding&callback=initMap`}
+            src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places,geocoding`}
             async
             defer
           />
@@ -48,9 +48,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-// Define a global callback function (can be empty if not strictly needed by other parts)
-// The modern approach often allows direct use of `window.google` after the script loads
-(window as any).initMap = function() {
-  console.log("Google Maps script loaded.");
-};

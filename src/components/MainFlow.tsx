@@ -327,6 +327,7 @@ export function MainFlow() {
           selectedAddress={formData.selectedAddress}
           updateSelectedAddress={updateSelectedAddress}
           onStep1NextSubmit={handleStep1NextSubmit}
+          streetViewUrl={formData.streetViewUrl} // Pass streetViewUrl to Step1
         />
       )
 
