@@ -108,7 +108,7 @@ export function Step1({
       setButtonText(`Address Updated ${countdown}`);
       if (countdown === 0) {
         clearInterval(intervalId);
-        setButtonText("Verify Address");
+        setButtonText("Update Address Again");
         setButtonColor("bg-blue-600 hover:bg-blue-700");
         setIsButtonDisabled(false);
       }
