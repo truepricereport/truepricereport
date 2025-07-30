@@ -41,6 +41,7 @@ interface FormData {
     lowEstimate?: string;
     highEstimate?: string;
     valuationStatus?: "available" | "unavailable";
+    unitNumber?: string;
   }
   step2: {
     beds: string
@@ -115,7 +116,6 @@ export function MainFlow() {
         state: placeDetails.state || "",
         country: placeDetails.country || "USA",
         zipcode: placeDetails.zipcode || "",
-        //include unitNumber
         unitNumber: placeDetails.unitNumber || ""
       }
 
@@ -351,9 +351,7 @@ export function MainFlow() {
         <Step2
           formData={formData}
           updateFormData={updateFormData}
-  //Next, I'll modify `Step1.tsx` to re-introduce the reverse geocoding functionality and the "Verify Address" button. I will also make sure to call the new `onAddressUpdate` handler when the address is successfully geocoded.
 
-//I'll read the `src/components/Step1.tsx` file first.
           onNext={goToStep3}
           onPrevious={goToStep1}
           selectedAddress={formData.selectedAddress}
