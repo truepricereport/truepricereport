@@ -149,7 +149,7 @@ export function Step1({
       streetAddress: `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}`
     }
     
-    await onStep1NextSubmit(finalAddress);
+    onStep1NextSubmit(finalAddress);
     updateFormData({ step1: finalAddress });
     onNext();
   }
@@ -178,7 +178,6 @@ export function Step1({
 
         <div className="mb-8">
           <GoogleMap
-            key={selectedAddress}
             address={selectedAddress}
             latitude={latitude}
             longitude={longitude}

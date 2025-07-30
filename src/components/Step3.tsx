@@ -28,7 +28,7 @@ const step3Schema = z.object({
     .min(1, { message: 'Last name is required' })
     .max(50, { message: 'Last name cannot exceed 50 characters' }),
     phone: z.string()
-    .regex(/^\+1\d{10}$/, { message: 'Invalid phone number format (e.g., +15551234567)' })
+    .regex(/^(?:\+1)?\d{10}$|^\d{10}$/, { message: 'Invalid phone number format (e.g., +1(xxx)xxx-xxxx)' })
     .nonempty({ message: 'Phone number is required' }),
     email: z.string().email({ message: 'Invalid email format' }),
 })

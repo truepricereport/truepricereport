@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
@@ -20,11 +20,15 @@ interface FormData {
         priceEstimate?: string;
         lowEstimate?: string;
         highEstimate?: string;
-        valuationStatus?: "available" | "unavailable";
-    }
+        valuationStatusAvailable: boolean | null;
+        unitNumber?: string;
+        }
     step2: {
         beds: string
         baths: string
+        yearBuilt: string
+        squareFoot: string
+        unitNumber: string | null
     }
     step3: {
         firstName: string
@@ -32,6 +36,7 @@ interface FormData {
         phone: string
         email: string
     }
+    unitNumbers?: string[] // add unitNumbers to form data
 }
 
 interface ResultsPageProps {
@@ -45,7 +50,6 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     const address = formData.step1?.streetAddress || "Your Property"
     const latitude = formData?.latitude // Keep for GoogleMap component
     const longitude = formData?.longitude // Keep for GoogleMap component
-    const valuationUnavailable = formData.step1.valuationStatus === "unavailable";
 
     // Get current time to determine greeting
     const currentHour = new Date().getHours()
@@ -71,7 +75,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     useEffect(() => {
         let timer: NodeJS.Timeout;
 
-        if (valuationUnavailable) {
+        if (formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) {
             timer = setTimeout(() => {
                 setShowMessagePopup(true);
             }, 20000); // 20 seconds
@@ -79,7 +83,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
         // Cleanup function to clear the timeout if the component unmounts or the valuation status changes
         return () => clearTimeout(timer);
-    }, [valuationUnavailable]);
+    }, [formData.step1.valuationStatusAvailable]);
 
     // Function to handle sending the combined message
     const handleSendMessage = (message: string) => {
@@ -119,7 +123,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                 )}
 
                 {/* Conditionally render Google Map (still uses lat/lng from formData) */}
-                {formData.step1.valuationStatus !== "unavailable" && (
+                {formData.step1.valuationStatusAvailable === true ? (
                     <div className="mb-8">
                         <GoogleMap
                             address={formData.selectedAddress}
@@ -128,16 +132,16 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                             className="shadow-md"
                         />
                     </div>
-                )}
+                ) : null}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Home Value Card */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                            Your Home value {formData.step1.valuationStatus === "available" ? "(Estimated)" : ""}
+                            Your Home value {formData.step1.valuationStatusAvailable === true ? "(Estimated)" : ""}
                         </h2>
 
-                        {formData.step1.valuationStatus === "available" ? (
+                        {formData.step1.valuationStatusAvailable === true ? (
                             <div className="mb-8">
                                 <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
                                 <span className="text-4xl font-bold text-gray-900 ml-2">
@@ -151,7 +155,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                         )}
 
                         {/* Conditionally render buttons */}
-                        {formData.step1.valuationStatus === "available" && (
+                        {formData.step1.valuationStatusAvailable === true && (
                             <div className="space-y-3">
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
@@ -205,13 +209,13 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <div className="text-gray-600">Bathrooms</div>
                             </div>
                         )}
-                        {formData.step1.valuationStatus === "available" && formData.step1.lowEstimate && (
+                        {formData.step1.valuationStatusAvailable && formData.step1.lowEstimate && (
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
                                 <div className="text-gray-600">Low Estimate</div>
                             </div>
                         )}
-                        {formData.step1.valuationStatus === "available" && formData.step1.highEstimate && (
+                        {formData.step1.valuationStatusAvailable && formData.step1.highEstimate && (
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.highEstimate}</div>
                                 <div className="text-gray-600">High Estimate</div>
@@ -229,13 +233,13 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                         Start Over
                     </Button>
                 </div>
-                {showMessagePopup && (
+                {showMessagePopup && (formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) && (
                     <MessagePopup
                         onUpdateDescription={handleSendMessage}
-                        popupTitle= {valuationUnavailable ? 'Contact Us For Personalized Valuation' : 'Send a Message'}
+                        popupTitle={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) ? 'Contact Us For Personalized Valuation' : 'Send a Message'}
                         onClose={closeMessagePopup}
-                        defaultMessage= {valuationUnavailable ? 'I am interested in a personalized valuation.' : ''}
-                        isValuationUnavailable = {valuationUnavailable}
+                        defaultMessage={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) ? 'I am interested in a personalized valuation.' : ''}
+                        isValuationUnavailable={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null)}
                     />
                 )}
             </div>

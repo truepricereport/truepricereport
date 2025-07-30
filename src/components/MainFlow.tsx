@@ -28,7 +28,7 @@ interface FormData {
     priceEstimate?: string;
     lowEstimate?: string;
     highEstimate?: string;
-    valuationStatus?: "available" | "unavailable";
+    valuationStatusAvailable: boolean | null;
     unitNumber?: string;
   }
   step2: {
@@ -64,7 +64,11 @@ export function MainFlow() {
       city: "",
       state: "",
       country: "USA",
-      zipcode: ""
+      zipcode: "",
+      priceEstimate: undefined,
+      lowEstimate: undefined,
+      highEstimate: undefined,
+      valuationStatusAvailable: null,
     },
     step2: {
       beds: "",
@@ -104,7 +108,8 @@ export function MainFlow() {
         state: placeDetails.state || "",
         country: placeDetails.country || "USA",
         zipcode: placeDetails.zipcode || "",
-        unitNumber: placeDetails.unitNumber || ""
+        unitNumber: placeDetails.unitNumber || "",
+        valuationStatusAvailable: null,
       }
 
       setFormData(prev => ({
@@ -204,10 +209,16 @@ export function MainFlow() {
       console.log("CoreLogic API Response via Proxy:", data);
 
       let unitNumbers: string[] = []; // Initialize unitNumbers
+      let priceEstimate: string | undefined;
+      let lowEstimate: string | undefined;
+      let highEstimate: string | undefined;
 
       if (response.status === 200) {
         // Valuation available
         unitNumbers = data.unitNumbers || []; // Extract unitNumbers from the response
+        priceEstimate = data.priceEstimate || undefined;
+        lowEstimate = data.lowEstimate || undefined;
+        highEstimate = data.highEstimate || undefined;
 
         setFormData(prev => ({
           ...prev,
@@ -216,8 +227,11 @@ export function MainFlow() {
             priceEstimate: data.priceEstimate || undefined,
             lowEstimate: data.lowEstimate || undefined,
             highEstimate: data.highEstimate || undefined,
-            valuationStatus: "available"
+            valuationStatusAvailable: true,
           },
+          priceEstimate: priceEstimate,
+          lowEstimate: lowEstimate,
+          highEstimate: highEstimate,
           unitNumbers: unitNumbers // Store unitNumbers in formData
         }));
       } else if (response.status === 404 || response.status === 500) { // Also handle 500
@@ -229,7 +243,7 @@ export function MainFlow() {
             priceEstimate: undefined,
             lowEstimate: undefined,
             highEstimate: undefined,
-            valuationStatus: "unavailable"
+            valuationStatusAvailable: false
           },
           unitNumbers: [] // Ensure unitNumbers is always an array
         }));
