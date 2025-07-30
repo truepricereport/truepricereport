@@ -9,26 +9,17 @@ declare global {
   }
 }
 
-interface PlaceDetails {
-  fullAddress: string
-  streetNumber: string
-  unitNumber: string // Added unitNumber
-  route: string
-  city: string
-  state: string
-  country: string
-  zipcode: string
-  latitude?: number
-  longitude?: number
-}
+import { PlaceDetails } from "../types/index";
 
 interface TraditionalAutocompleteProps {
+  id?: string;
   onAddressSelect: (address: string, placeDetails?: PlaceDetails) => void
   placeholder?: string
   className?: string
 }
 
 export function TraditionalAutocomplete({
+  id,
   onAddressSelect,
   placeholder = "Enter your address",
   className
@@ -162,6 +153,7 @@ export function TraditionalAutocomplete({
       aria-autocomplete="list"
       role="combobox"
       autoComplete="off"
+      id={id}
     />
   )
 }

@@ -9,18 +9,7 @@ import { Button } from "@/components/ui/button"
 import { TraditionalAutocomplete } from "@/components/AddressAutocomplete"
 import { useState, useEffect } from "react"
 import { useForm } from 'react-hook-form'
-
-interface PlaceDetails {
-  fullAddress: string
-  streetNumber: string
-  route: string
-  city: string
-  state: string
-  country: string
-  zipcode: string
-  latitude?: number
-  longitude?: number
-}
+import { PlaceDetails } from "../types/index";
 
 interface HeroSectionProps {
   onAddressSubmit: (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => void
@@ -85,9 +74,9 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
     }
 
     if (placeDetails) {
-      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails
+      (window as unknown as Record<string, unknown>).selectedAddressDetails = placeDetails
     } else {
-      ;(window as unknown as Record<string, unknown>).selectedAddressDetails = undefined
+      (window as unknown as Record<string, unknown>).selectedAddressDetails = undefined
     }
   }
 
@@ -102,6 +91,7 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
           fullAddress: data.address,
           streetNumber: '',
           route: '',
+          unitNumber: '',
           city: '',
           state: '',
           country: '',

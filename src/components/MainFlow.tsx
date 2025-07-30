@@ -10,21 +10,9 @@ import { Step1 } from "./Step1"
 import { Step2 } from "./Step2"
 import { Step3 } from "./Step3"
 import { ResultsPage } from "./ResultsPage"
+import { PlaceDetails } from "../types/index";
 
 type FlowStep = "hero" | "step1" | "step2" | "step3" | "results"
-
-interface PlaceDetails {
-  fullAddress: string
-  streetNumber: string
-  unitNumber: string // include unitNumber
-  route: string
-  city: string
-  state: string
-  country: string
-  zipcode: string
-  latitude?: number
-  longitude?: number
-}
 
 interface FormData {
   selectedAddress: string
