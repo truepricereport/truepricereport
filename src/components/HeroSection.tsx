@@ -138,7 +138,7 @@ export function HeroSection({ onAddressSubmit }: HeroSectionProps) {
           <li>• What Would a Cash Offer Look Like?</li>
         </ul>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 max-w-lg mx-auto">
           <div className="flex-1">
             {streetViewUrl && (
               <div className="mb-4">
