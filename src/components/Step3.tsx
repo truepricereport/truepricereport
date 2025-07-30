@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
@@ -34,7 +34,7 @@ const step3Schema = z.object({
 })
 
 export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof step3Schema>>({
+  const { register, handleSubmit, formState: { errors }, control } = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
     defaultValues: {
       firstName: formData.step3?.firstName || "",
@@ -80,10 +80,17 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
               First Name{" "}
               {errors.firstName && <span className="text-gray-500">*</span>}
             </Label>
-            <Input
-              id="firstName"
-              className="mt-1"
-              {...register("firstName")}
+            <Controller
+              name="firstName"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="firstName"
+                  className="mt-1"
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
           </div>
@@ -93,10 +100,17 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
               Last Name{" "}
               {errors.lastName && <span className="text-gray-500">*</span>}
             </Label>
-            <Input
-              id="lastName"
-              className="mt-1"
-              {...register("lastName")}
+            <Controller
+              name="lastName"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="lastName"
+                  className="mt-1"
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
           </div>
@@ -106,11 +120,18 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
               Phone{" "}
               {errors.phone && <span className="text-gray-500">*</span>}
             </Label>
-            <Input
-              id="phone"
-              type="tel"
-              className="mt-1"
-              {...register("phone")}
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="phone"
+                  type="tel"
+                  className="mt-1"
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
           </div>
@@ -120,11 +141,18 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
               Email{" "}
               {errors.email && <span className="text-gray-500">*</span>}
             </Label>
-            <Input
-              id="email"
-              type="email"
-              className="mt-1"
-              {...register("email")}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="email"
+                  type="email"
+                  className="mt-1"
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
           </div>

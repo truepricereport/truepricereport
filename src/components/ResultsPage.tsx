@@ -197,31 +197,43 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
                     <p>Some properties require enhanced valuation tools due to unique characteristics or market activity. Contact us to learn more.</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        {formData.step2.beds && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.beds}</div>
-                                <div className="text-gray-600">Bedrooms</div>
-                            </div>
-                        )}
-                        {formData.step2.baths && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.baths}</div>
-                                <div className="text-gray-600">Bathrooms</div>
-                            </div>
-                        )}
-                        {formData.step1.valuationStatusAvailable && formData.step1.lowEstimate && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
-                                <div className="text-gray-600">Low Estimate</div>
-                            </div>
-                        )}
-                        {formData.step1.valuationStatusAvailable && formData.step1.highEstimate && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.highEstimate}</div>
-                                <div className="text-gray-600">High Estimate</div>
-                            </div>
-                        )}
-                    </div>
+                    {formData.step2.beds && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.beds}</div>
+                            <div className="text-gray-600">Bedrooms</div>
+                        </div>
+                    )}
+                    {formData.step2.baths && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.baths}</div>
+                            <div className="text-gray-600">Bathrooms</div>
+                        </div>
+                    )}
+                    {formData.step2.yearBuilt && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.yearBuilt}</div>
+                            <div className="text-gray-600">Year Built</div>
+                        </div>
+                    )}
+                    {formData.step2.squareFoot && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.squareFoot}</div>
+                            <div className="text-gray-600">Square Footage</div>
+                        </div>
+                    )}
+                    {formData.step1.valuationStatusAvailable && formData.step1.lowEstimate && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
+                            <div className="text-gray-600">Low Estimate</div>
+                        </div>
+                    )}
+                    {formData.step1.valuationStatusAvailable && formData.step1.highEstimate && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.highEstimate}</div>
+                            <div className="text-gray-600">High Estimate</div>
+                        </div>
+                    )}
+                        </div>
                 </div>
 
                 <div className="mt-8 text-center">
