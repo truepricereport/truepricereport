@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,6 +55,9 @@ export function Step1({
   streetViewUrl,
   onAddressUpdate,
 }: Step1Props) {
+  const [buttonText, setButtonText] = useState("Update Address");
+  const [buttonColor, setButtonColor] = useState("bg-blue-600 hover:bg-blue-700");
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const { register, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
@@ -95,6 +98,22 @@ export function Step1({
   }, [watchedFields, updateSelectedAddress, selectedAddress]);
 
   const handleVerifyAddress = async () => {
+    setButtonText("Address Updated 10");
+    setButtonColor("bg-green-600 hover:bg-green-700");
+    setIsButtonDisabled(true);
+
+    let countdown = 10;
+    const intervalId = setInterval(() => {
+      countdown--;
+      setButtonText(`Address Updated ${countdown}`);
+      if (countdown === 0) {
+        clearInterval(intervalId);
+        setButtonText("Verify Address");
+        setButtonColor("bg-blue-600 hover:bg-blue-700");
+        setIsButtonDisabled(false);
+      }
+    }, 1000);
+
     const values = getValues();
     // Update form values before geocoding
     setValue('streetAddress', values.streetAddress);
@@ -258,9 +277,10 @@ export function Step1({
           <Button
             type="button"
             onClick={handleVerifyAddress}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-medium"
+            className={`w-full ${buttonColor} text-white px-8 py-3 rounded-md font-medium`}
+            disabled={isButtonDisabled}
           >
-            Verify Address
+            {buttonText}
           </Button>
 
           <Button
