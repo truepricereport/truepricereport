@@ -83,20 +83,6 @@ export function Step1({
     setValue('country', formData.step1.country || "USA");
   }, [formData.step1, setValue]);
 
-  // This effect reconstructs the address and updates the parent state (for display).
-  // This is what was causing the loop, but it's now safe because the effect above is more controlled.
-  useEffect(() => {
-    const { streetAddress, unitNumber, city, state, zipcode, country } = watchedFields;
-    // Only update if the necessary fields are present
-    if (streetAddress && city && state && zipcode && country) {
-        const displayAddress = `${streetAddress}${unitNumber ? ` #${unitNumber}` : ''}, ${city}, ${state} ${zipcode}, ${country}`;
-        // To prevent the loop, we check if the update is actually needed.
-        if (displayAddress !== selectedAddress) {
-            updateSelectedAddress(displayAddress);
-        }
-    }
-  }, [watchedFields, updateSelectedAddress, selectedAddress]);
-
   const handleVerifyAddress = async () => {
     setButtonText("Address Updated 10");
     setButtonColor("bg-green-600 hover:bg-green-700");
@@ -151,6 +137,12 @@ export function Step1({
   };
 
   const handleNext = async (data: z.infer<typeof step1Schema>) => {
+     // Reconstruct the full address from the form data
+    const fullAddress = `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipcode}, ${data.country}`;
+
+    // Update the selectedAddress state in the parent component
+    updateSelectedAddress(fullAddress);
+
     // Reconstruct the final address from form data to ensure it's up-to-date
     const finalAddress = {
       ...data,
