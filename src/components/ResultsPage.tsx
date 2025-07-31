@@ -6,6 +6,7 @@ import Image from "next/image"
 import { GoogleMap } from "@/components/GoogleMap"
 import { MessagePopup } from './MessagePopup'
 
+// Define the structure of the form data passed to ResultsPage
 interface FormData {
     selectedAddress: string
     latitude?: number
@@ -39,6 +40,7 @@ interface FormData {
     unitNumbers?: string[] // add unitNumbers to form data
 }
 
+// Define the props for the ResultsPage component
 interface ResultsPageProps {
     formData: FormData
     onUpdateDescription: (descriptionPart: string) => void
@@ -46,12 +48,15 @@ interface ResultsPageProps {
 }
 
 export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: ResultsPageProps) {
+    console.log("ResultsPage rendered with formData:", formData);
+    console.log("Street View URL in ResultsPage:", streetViewUrl);
+
     const firstName = formData.step3?.firstName || "Friend"
     const address = formData.step1?.streetAddress || "Your Property"
     const latitude = formData?.latitude // Keep for GoogleMap component
     const longitude = formData?.longitude // Keep for GoogleMap component
 
-    // Get current time to determine greeting
+    // Determine the appropriate greeting based on the current time
     const currentHour = new Date().getHours()
     let greeting = "Good Day!"
     if (currentHour < 12) {
@@ -61,7 +66,9 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     } else {
         greeting = "Good Night!"
     }
+    console.log("Greeting determined:", greeting);
 
+    // State variables for managing the message popup and button click states
     const [showMessagePopup, setShowMessagePopup] = useState(false)
     const [cashOfferClicked, setCashOfferClicked] = useState(false);
     const [refinanceClicked, setRefinanceClicked] = useState(false);
@@ -69,26 +76,35 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
     // Function to close the message popup
     const closeMessagePopup = () => {
+        console.log("Closing message popup.");
         setShowMessagePopup(false)
     }
 
+    // Effect to show a message popup after a delay if valuation is unavailable
     useEffect(() => {
         let timer: NodeJS.Timeout;
+        console.log("Valuation status available in useEffect:", formData.step1.valuationStatusAvailable);
 
         if (formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) {
+            console.log("Setting timeout for message popup (20 seconds) due to unavailable/null valuation.");
             timer = setTimeout(() => {
                 setShowMessagePopup(true);
             }, 20000); // 20 seconds
         }
 
         // Cleanup function to clear the timeout if the component unmounts or the valuation status changes
-        return () => clearTimeout(timer);
+        return () => {
+            console.log("Clearing message popup timeout.");
+            clearTimeout(timer);
+        };
     }, [formData.step1.valuationStatusAvailable]);
 
-    // Function to handle sending the combined message
+    // Function to handle sending the combined message via onUpdateDescription prop
     const handleSendMessage = (message: string) => {
+        console.log("Sending message to update description:", message);
         onUpdateDescription(message);
         setShowMessagePopup(false);
+        console.log("Message sent and popup closed.");
     }
 
     return (
@@ -115,14 +131,14 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                     </p>
                 </div>
 
-                {/* Static Street View Image - Display here */}
+                {/* Static Street View Image - Display here if available */}
                  {streetViewUrl && (
                     <div className="mb-8">
                         <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
                     </div>
                 )}
 
-                {/* Conditionally render Google Map (still uses lat/lng from formData) */}
+                {/* Conditionally render Google Map if valuation is available */}
                 {formData.step1.valuationStatusAvailable === true ? (
                     <div className="mb-8">
                         <GoogleMap
@@ -135,12 +151,13 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                 ) : null}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Home Value Card */}
+                    {/* Home Value Card Section */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
                             Your Home value {formData.step1.valuationStatusAvailable === true ? "(Estimated)" : ""}
                         </h2>
 
+                        {/* Display price estimate if available, otherwise display message about unavailability */}
                         {formData.step1.valuationStatusAvailable === true ? (
                             <div className="mb-8">
                                 <span className="text-5xl font-bold text-[#0f6c0c]">$</span>
@@ -154,12 +171,13 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                             </div>
                         )}
 
-                        {/* Conditionally render buttons */}
+                        {/* Conditionally render action buttons if valuation is available */}
                         {formData.step1.valuationStatusAvailable === true && (
                             <div className="space-y-3">
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
+                                        console.log("Get a Cash Offer button clicked.");
                                         onUpdateDescription("I am interested in getting a Cash Offer.");
                                         setCashOfferClicked(true);
                                     }}
@@ -170,6 +188,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
+                                        console.log("Refinance button clicked.");
                                         onUpdateDescription("I am interested in Refinancing.");
                                         setRefinanceClicked(true);
                                     }}
@@ -180,6 +199,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                                 <Button
                                     className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
                                     onClick={() => {
+                                        console.log("Contact Real Estate Agent button clicked.");
                                         onUpdateDescription("I am interested in contacting a Real Estate Agent.");
                                         setContactAgentClicked(true);
                                     }}
@@ -192,66 +212,69 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                     </div>
                 </div>
 
-                {/* Property Details */}
+                {/* Property Details Section */}
                 <div className="mt-8 bg-white rounded-2xl p-8 shadow-lg">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
-                    <p>Some properties require enhanced valuation tools due to unique characteristics or market activity. Contact us to learn more.</p>
-                    <div className="flex flex-wrap justify-center">
+                    <p className="mb-4">Some properties require enhanced valuation tools due to unique characteristics or market activity. Contact us to learn more.</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {formData.step2.beds && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step2.beds}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.beds}</div>
                                 <div className="text-gray-600">Bedrooms</div>
                             </div>
                         )}
                         {formData.step2.baths && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step2.baths}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.baths}</div>
                                 <div className="text-gray-600">Bathrooms</div>
                             </div>
                         )}
                         {formData.step2.yearBuilt && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step2.yearBuilt}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.yearBuilt}</div>
                                 <div className="text-gray-600">Year Built</div>
                             </div>
                         )}
                         {formData.step2.squareFoot && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step2.squareFoot}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.squareFoot}</div>
                                 <div className="text-gray-600">Square Footage</div>
                             </div>
                         )}
                         {formData.step1.valuationStatusAvailable && formData.step1.lowEstimate && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step1.lowEstimate}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.lowEstimate}</div>
                                 <div className="text-gray-600">Low Estimate</div>
                             </div>
                         )}
                         {formData.step1.valuationStatusAvailable && formData.step1.highEstimate && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step1.highEstimate}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step1.highEstimate}</div>
                                 <div className="text-gray-600">High Estimate</div>
                             </div>
                         )}
 
                         {formData.step2.unitNumber && (
-                            <div className="bg-gray-50 rounded-lg p-4 w-1/2">
-                                <div className="text-2xl font-bold text-[#0f6c0c] text-sm">{formData.step2.unitNumber || '-'}</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.unitNumber || '-'}</div>
                                 <div className="text-gray-600">Unit Number</div>
                             </div>
                         )}
                     </div>
                 </div>
 
+                {/* Start Over Button */}
                 <div className="mt-8 text-center">
                     <Button
                         variant="outline"
-                        onClick={() => window.location.reload()}
+                        onClick={() => { console.log("Start Over button clicked. Reloading page."); window.location.reload(); }}
                         className="px-8 py-3"
                     >
                         Start Over
                     </Button>
                 </div>
+
+                {/* Message Popup Component (conditionally rendered) */}
                 {showMessagePopup && (formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) && (
                     <MessagePopup
                         onUpdateDescription={handleSendMessage}

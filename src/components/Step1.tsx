@@ -10,6 +10,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
+// Define the props for the Step1 component
 interface Step1Props {
   formData: any
   updateFormData: (data: any) => void
@@ -23,6 +24,7 @@ interface Step1Props {
   onAddressUpdate: (data: { latitude: number; longitude: number; streetViewUrl: string | null }) => void
 }
 
+// Define the schema for Step1 form validation using Zod
 const step1Schema = z.object({
   streetAddress: z.string()
     .min(1, { message: 'Street address is required' })
@@ -55,9 +57,12 @@ export function Step1({
   streetViewUrl,
   onAddressUpdate,
 }: Step1Props) {
+  // State variables for the "Update Address" button
   const [buttonText, setButtonText] = useState("Update Address");
   const [buttonColor, setButtonColor] = useState("bg-blue-600 hover:bg-blue-700");
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+
+  // Initialize react-hook-form
   const { register, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
@@ -72,18 +77,22 @@ export function Step1({
 
   // Watch all fields to reconstruct the full address.
   const watchedFields = useWatch({ control });
+  console.log("Step1Log-Watched form fields:", watchedFields);
 
   // This effect populates the form when the initial data arrives.
   // It only runs when the core formData.step1 object changes, not on every selectedAddress change.
   useEffect(() => {
+    console.log("Step1Log-formData.step1 changed, updating form values:", formData.step1);
     setValue('streetAddress', formData.step1.streetAddress || selectedAddress || "");
     setValue('city', formData.step1.city || "");
     setValue('state', formData.step1.state || "");
     setValue('zipcode', formData.step1.zipcode || "");
     setValue('country', formData.step1.country || "USA");
-  }, [formData.step1, setValue]);
+  }, [formData.step1, setValue, selectedAddress]);
 
+  // Handler for verifying the address using Google Geocoding API
   const handleVerifyAddress = async () => {
+    console.log("Step1Log-Verifying address...");
     setButtonText("Address Updated 10");
     setButtonColor("bg-green-600 hover:bg-green-700");
     setIsButtonDisabled(true);
@@ -101,7 +110,9 @@ export function Step1({
     }, 1000);
 
     const values = getValues();
-    // Update form values before geocoding
+    console.log("Step1Log-Current form values for verification:", values);
+
+    // Update form values before geocoding (though values are already up-to-date from getValues())
     setValue('streetAddress', values.streetAddress);
     setValue('unitNumber', values.unitNumber);
     setValue('city', values.city);
@@ -110,11 +121,13 @@ export function Step1({
     setValue('country', values.country);
 
     const fullAddress = `${values.streetAddress}${values.unitNumber ? ` #${values.unitNumber}` : ''}, ${values.city}, ${values.state} ${values.zipcode}, ${values.country}`;
+    console.log("Step1Log-Full address for geocoding:", fullAddress);
     
     if (window.google) {
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: fullAddress }, (results, status) => {
         if (status === 'OK' && results && results[0]) {
+          console.log("Step1Log-Geocoding successful:", results);
           const location = results[0].geometry.location;
           const lat = location.lat();
           const lng = location.lng();
@@ -127,18 +140,24 @@ export function Step1({
             streetViewUrl: newStreetViewUrl,
           });
           updateSelectedAddress(fullAddress);
+          console.log("Step1Log-Address updated with new coordinates and Street View URL.");
         } else {
+          console.error("Step1Log-Geocoding failed:", status, results);
           alert('Could not verify the address. Please check the details and try again.');
         }
       });
     } else {
+      console.warn("Step1Log-Google Maps API not loaded.");
       alert('Google Maps is not available. Please try again later.');
     }
   };
 
+  // Handler for proceeding to the next step
   const handleNext = async (data: z.infer<typeof step1Schema>) => {
+    console.log("Step1Log-Proceeding to next step with form data:", data);
      // Reconstruct the full address from the form data
     const fullAddress = `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipcode}, ${data.country}`;
+    console.log("Step1Log-Full address to update selectedAddress:", fullAddress);
 
     // Update the selectedAddress state in the parent component
     updateSelectedAddress(fullAddress);
@@ -148,10 +167,12 @@ export function Step1({
       ...data,
       streetAddress: `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}`
     }
+    console.log("Step1Log-Final address object for submission:", finalAddress);
     
     onStep1NextSubmit(finalAddress);
     updateFormData({ step1: finalAddress });
     onNext();
+    console.log("Step1Log-Step1 form submitted and data updated.");
   }
 
   return (
@@ -171,11 +192,13 @@ export function Step1({
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             This is Your Home, Correct?
           </h1>
+          {/* Display the currently selected address */}
           <h2 className="text-xl text-[#0f6c0c] mb-8">
             {selectedAddress || "Please confirm your address"}
           </h2>
         </div>
 
+        {/* Google Map component to display the address location */}
         <div className="mb-8">
           <GoogleMap
             address={selectedAddress}
@@ -188,7 +211,9 @@ export function Step1({
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 1: Confirm Address</h3>
 
+        {/* Address confirmation form */}
         <form onSubmit={handleSubmit(handleNext)} className="space-y-4">
+          {/* Street Address Input */}
           <div>
             <Label htmlFor="streetAddress" className="text-gray-700 font-medium">
               Street Address
@@ -202,6 +227,7 @@ export function Step1({
             {errors.streetAddress && <p className="text-red-500 text-sm mt-1">{errors.streetAddress.message}</p>}
           </div>
 
+          {/* Unit Number Input (Optional) */}
           <div>
             <Label htmlFor="unitNumber" className="text-gray-700 font-medium">
               Unit Number (Optional)
@@ -213,6 +239,7 @@ export function Step1({
             />
           </div>
 
+          {/* City Input */}
           <div>
             <Label htmlFor="city" className="text-gray-700 font-medium">
               City
@@ -226,6 +253,7 @@ export function Step1({
             {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>}
           </div>
 
+          {/* State Input */}
           <div>
             <Label htmlFor="state" className="text-gray-700 font-medium">
               State
@@ -239,6 +267,7 @@ export function Step1({
             {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>}
           </div>
 
+          {/* Country Input */}
           <div>
             <Label htmlFor="country" className="text-gray-700 font-medium">
               Country
@@ -252,6 +281,7 @@ export function Step1({
             {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country.message}</p>}
           </div>
 
+          {/* Zipcode Input */}
           <div>
             <Label htmlFor="zipcode" className="text-gray-700 font-medium">
               Zipcode
@@ -265,6 +295,7 @@ export function Step1({
             {errors.zipcode && <p className="text-red-500 text-sm mt-1">{errors.zipcode.message}</p>}
           </div>
           
+          {/* Button to verify address, with dynamic text and color */}
           <Button
             type="button"
             onClick={handleVerifyAddress}
@@ -274,6 +305,7 @@ export function Step1({
             {buttonText}
           </Button>
 
+          {/* Button to confirm and proceed to the next step */}
           <Button
             type="submit"
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white px-8 py-3 rounded-md font-medium mt-8 w-full disabled:bg-gray-400"
@@ -281,6 +313,7 @@ export function Step1({
             CONFIRM
           </Button>
 
+          {/* Disclaimer text */}
           <p className="text-sm text-gray-600 mt-6">
             By submitting my information in this form, I agree to be contacted by licensed providers. I also agree to be contacted via call or text manual and/or automatic to my cell phone provided, in order to receive the information requested above.
           </p>

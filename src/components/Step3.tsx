@@ -9,6 +9,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
+// Define the props for the Step3 component
 interface Step3Props {
   formData: any
   updateFormData: (data: any) => void
@@ -20,6 +21,7 @@ interface Step3Props {
   streetViewUrl?: string | null
 }
 
+// Define the schema for Step3 form validation using Zod
 const step3Schema = z.object({
   firstName: z.string()
     .min(1, { message: 'First name is required' })
@@ -34,6 +36,7 @@ const step3Schema = z.object({
 })
 
 export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
+  // Initialize react-hook-form with Zod resolver and default values from formData
   const { register, handleSubmit, formState: { errors }, control } = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
     defaultValues: {
@@ -44,9 +47,12 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
     }
   })
 
+  // Handler for successful form submission
   const handleValidSubmit = (data: z.infer<typeof step3Schema>) => {
+    console.log("Step3 form valid and submitting data:", data);
     updateFormData({ step3: data })
     onSubmit()
+    console.log("Step3 data updated and proceeding to final submission.");
   }
 
   return (
@@ -67,14 +73,16 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
 
         <h3 className="text-xl font-bold text-gray-900 mb-6">Step 3: Confirm Your Information</h3>
 
-        {/* Static Street View Image */}
+        {/* Display static Street View Image if available */}
         {streetViewUrl && (
           <div className="mb-8">
             <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
           </div>
         )}
 
+        {/* Form for personal information */}
         <form onSubmit={handleSubmit(handleValidSubmit)} className="space-y-4">
+          {/* First Name Input */}
           <div>
             <Label htmlFor="firstName" className="text-gray-700 font-medium">
               First Name{" "}
@@ -95,6 +103,7 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
             {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
           </div>
 
+          {/* Last Name Input */}
           <div>
             <Label htmlFor="lastName" className="text-gray-700 font-medium">
               Last Name{" "}
@@ -115,6 +124,7 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
             {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
           </div>
 
+          {/* Phone Number Input */}
           <div>
             <Label htmlFor="phone" className="text-gray-700 font-medium">
               Phone{" "}
@@ -136,6 +146,7 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
           </div>
 
+          {/* Email Input */}
           <div>
             <Label htmlFor="email" className="text-gray-700 font-medium">
               Email{" "}
@@ -158,22 +169,24 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
           </div>
         </form>
 
+        {/* Navigation buttons */}
         <div className="flex gap-4 mt-8">
           <Button
-            onClick={onPrevious}
+            onClick={() => { console.log("Previous button clicked in Step3."); onPrevious(); }}
             variant="outline"
             className="flex-1 px-8 py-3 rounded-md font-medium"
           >
             Previous
           </Button>
           <Button
-            onClick={handleSubmit(handleValidSubmit)}
+            onClick={() => { console.log("Submit button clicked in Step3."); handleSubmit(handleValidSubmit)(); }}
             className="bg-[#0f6c0c] hover:bg-[#0d5a0a] text-white flex-1 px-8 py-3 rounded-md font-medium disabled:bg-gray-400"
           >
             Submit
           </Button>
         </div>
 
+        {/* Disclaimer texts */}
         <p className="text-sm text-gray-600 mt-6">
           By submitting my information in this form, I agree to be contacted by licensed providers. I also agree to be contacted via call or text manual and/or automatic to my cell phone provided, in order to receive the information requested above.
         </p>

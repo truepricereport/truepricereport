@@ -1,5 +1,7 @@
 /**
- * This is the main flow of the application.
+ * This is the main flow of the application. It manages the state and progression
+ * through different steps of the property estimation process, from address input
+ * to displaying results.
  */
 
 "use client"
@@ -12,8 +14,10 @@ import { Step3 } from "./Step3"
 import { ResultsPage } from "./ResultsPage"
 import { PlaceDetails } from "../types/index";
 
+// Define the different steps in the application flow
 type FlowStep = "hero" | "step1" | "step2" | "step3" | "results"
 
+// Define the structure of the form data collected across all steps
 interface FormData {
   selectedAddress: string
   latitude?: number
@@ -44,16 +48,19 @@ interface FormData {
     phone: string
     email: string
   }
-  unitNumbers?: string[] // add unitNumbers to form data
+  unitNumbers?: string[] // add unitNumbers to form data, for properties with multiple units
 }
 
+// Define the structure for lead information sent to external services (e.g., Brivity)
 interface LeadInfo {
   email: string
   initialDescription: string
 }
 
 export function MainFlow() {
+  // State to manage the current step in the application flow
   const [currentStep, setCurrentStep] = useState<FlowStep>("hero")
+  // State to store all form data collected throughout the steps
   const [formData, setFormData] = useState<FormData>({
     selectedAddress: "",
     latitude: undefined,
@@ -85,23 +92,29 @@ export function MainFlow() {
     },
     unitNumbers: []
   })
-  const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null) // To store email and initial description
+  // State to store lead information after submission, used for subsequent updates
+  const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null)
 
+  // Function to update any part of the formData state
   const updateFormData = (data: Partial<FormData>) => {
+    console.log("mainFlowLog-Updating form data:", data);
     setFormData(prev => ({ ...prev, ...data }))
   }
 
+  // Function to update the selected address, specifically used by autocomplete
   const updateSelectedAddress = (address: string) => {
+    console.log("mainFlowLog-Updating selected address:", address);
     setFormData(prev => ({ ...prev, selectedAddress: address }))
   }
 
-  const handleAddressSubmit = (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => { // Modified to accept streetViewUrl
-    // Get detailed address info if available
+  // Handler for when an address is submitted from the HeroSection
+  const handleAddressSubmit = (address: string, placeDetails?: PlaceDetails, streetViewUrl?: string | null) => {
+    console.log("mainFlowLog-Address submitted from HeroSection:", address, "Place Details:", placeDetails, "Street View URL:", streetViewUrl);
 
     let step1Data = { ...formData.step1, streetAddress: address }
 
     if (placeDetails) {
-      // Auto-populate Step 1 fields with detailed address components
+      // If place details are available, populate Step 1 fields with more specific data
       step1Data = {
         streetAddress: `${placeDetails.streetNumber} ${placeDetails.route}`.trim() || address,
         city: placeDetails.city || "",
@@ -109,7 +122,7 @@ export function MainFlow() {
         country: placeDetails.country || "USA",
         zipcode: placeDetails.zipcode || "",
         unitNumber: placeDetails.unitNumber || "",
-        valuationStatusAvailable: null,
+        valuationStatusAvailable: null, // Reset valuation status on new address submit
       }
 
       setFormData(prev => ({
@@ -121,6 +134,7 @@ export function MainFlow() {
         step1: step1Data
       }))
     } else {
+      // If no detailed place details, just update the selected address and street view URL
       setFormData(prev => ({
         ...prev,
         selectedAddress: address,
@@ -129,26 +143,30 @@ export function MainFlow() {
       }))
     }
 
-    setCurrentStep("step1")
+    setCurrentStep("step1") // Move to Step 1
+    console.log("mainFlowLog-Moved to Step 1 after address submission.");
   }
 
+  // Handler to update latitude, longitude, and streetViewUrl, typically from Step1's address verification
   const handleAddressUpdate = (newAddressData: {
     latitude: number;
     longitude: number;
     streetViewUrl: string | null;
   }) => {
+    console.log("mainFlowLog-Address data updated (latitude, longitude, streetViewUrl):", newAddressData);
     setFormData(prev => ({
       ...prev,
       ...newAddressData,
     }));
   };
   
+  // Function to send lead data to Brivity CRM via AWS API Gateway
   const sendLeadToBrivity = async (payload: any, isUpdate: boolean = false) => {
-    console.log(`Sending lead data to Brivity (isUpdate: ${isUpdate}):`, payload)
+    console.log(`mainFlowLog-Sending lead data to Brivity (isUpdate: ${isUpdate}):`, payload)
     try {
       const awsApiGatewayUrl = process.env.NEXT_PUBLIC_AWS_API_GATEWAY_URL;
       if (!awsApiGatewayUrl) {
-        console.error("AWS API Gateway URL is not set. Please check NEXT_PUBLIC_AWS_API_GATEWAY_URL environment variable.");
+        console.error("mainFlowLog-AWS API Gateway URL is not set. Please check NEXT_PUBLIC_AWS_API_GATEWAY_URL environment variable.");
         return { success: false, error: "AWS API Gateway URL not configured." };
       }
 
@@ -162,30 +180,32 @@ export function MainFlow() {
       });
 
       const data = await response.json()
-      console.log("Brivity API Response via Proxy:", data)
+      console.log("mainFlowLog-Brivity API Response via Proxy:", data)
 
       if (response.ok) {
+        console.log("mainFlowLog-Lead successfully sent/updated in Brivity.");
         return { success: true, data }
       } else {
-        console.error("Brivity API Error via Proxy:", data)
+        console.error("mainFlowLog-Brivity API Error via Proxy:", data)
         return { success: false, error: data }
       }
     } catch (error) {
-      console.error("Error sending lead to Brivity via Proxy:", error)
+      console.error("mainFlowLog-Error sending lead to Brivity via Proxy:", error)
       return { success: false, error }
     }
   }
 
+  // Handler for submitting Step 1 data (address confirmation)
   const handleStep1NextSubmit = async (addressData: FormData['step1']) => {
-    console.log("Attempting to fetch property info for Step 1 CONFIRM button:", addressData);
+    console.log("mainFlowLog-Attempting to fetch property info for Step 1 CONFIRM button:", addressData);
     
-    // Immediately transition to Step 2
+    // Immediately transition to Step 2, to provide a faster user experience
     goToStep2();
 
     try {
       const corelogicApiGatewayUrl = process.env.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL;
       if (!corelogicApiGatewayUrl) {
-        console.error("CoreLogic API Gateway URL is not set. Please check NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL environment variable.");
+        console.error("mainFlowLog-CoreLogic API Gateway URL is not set. Please check NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL environment variable.");
         alert("Property estimation service not configured.");
         return { success: false, error: "CoreLogic API Gateway URL not configured." };
       }
@@ -195,7 +215,7 @@ export function MainFlow() {
         zipcode: addressData.zipcode,
       };
 
-      console.log("Sending property info payload to CoreLogic proxy:", payload);
+      console.log("mainFlowLog-Sending property info payload to CoreLogic proxy:", payload);
 
       const response = await fetch(corelogicApiGatewayUrl, {
         method: "POST",
@@ -206,7 +226,7 @@ export function MainFlow() {
       });
 
       const data = await response.json();
-      console.log("CoreLogic API Response via Proxy:", data);
+      console.log("mainFlowLog-CoreLogic API Response via Proxy:", data);
 
       let unitNumbers: string[] = []; // Initialize unitNumbers
       let priceEstimate: string | undefined;
@@ -229,11 +249,12 @@ export function MainFlow() {
             highEstimate: data.highEstimate || undefined,
             valuationStatusAvailable: true,
           },
-          priceEstimate: priceEstimate,
+          priceEstimate: priceEstimate, // Also update top-level price estimates for easier access
           lowEstimate: lowEstimate,
           highEstimate: highEstimate,
           unitNumbers: unitNumbers // Store unitNumbers in formData
         }));
+        console.log("mainFlowLog-Property valuation data received and stored.");
       } else if (response.status === 404 || response.status === 500) { // Also handle 500
         // Valuation unavailable or internal server error
         setFormData(prev => ({
@@ -245,15 +266,17 @@ export function MainFlow() {
             highEstimate: undefined,
             valuationStatusAvailable: false
           },
-          unitNumbers: [] // Ensure unitNumbers is always an array
+          unitNumbers: [] // Ensure unitNumbers is always an array even if valuation is unavailable
         }));
-        // Log 500 errors to the console, but do not show an alert
+        // Log 500 errors to the console, but do not show an alert to the user for 500
         if (response.status === 500) {
-           console.error(`An internal server error occurred while fetching property estimate. Status: ${response.status}`);
+           console.error(`mainFlowLog-An internal server error occurred while fetching property estimate. Status: ${response.status}`);
+        } else {
+          console.warn(`mainFlowLog-Property valuation not available for this address. Status: ${response.status}`);
         }
       } else {
         // Handle other unexpected status codes
-        console.error("CoreLogic API Error via Proxy:", data);
+        console.error("mainFlowLog-CoreLogic API Error via Proxy (unexpected status):", data);
         alert(`Failed to get property estimate. Unexpected error: ${response.status}`);
         return { success: false, error: data };
       }
@@ -261,23 +284,27 @@ export function MainFlow() {
       if (response.ok || response.status === 404 || response.status === 500) { // Proceed for 200, 404, and 500
         return { success: true, data };
       } else {
-         console.error("CoreLogic API Error via Proxy:", data);
+         console.error("mainFlowLog-CoreLogic API Error via Proxy (final check):", data);
          alert(`Failed to get property estimate. Unexpected error: ${response.status}`);
         return { success: false, error: data };
       }
 
     } catch (error) {
-      console.error("Error fetching property info via CoreLogic proxy:", error);
+      console.error("mainFlowLog-Error fetching property info via CoreLogic proxy:", error);
       alert("Error fetching property estimate.");
       return { success: false, error };
     }
   };
 
+  // Handler for the final submission of all form data (from Step 3)
   const handleFinalSubmit = async () => {
-    console.log("Final form data:", formData)
+    console.log("mainFlowLog-Final form data for submission:", formData)
 
+    // Construct an initial description string for the lead based on collected data
     const initialDescription = `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Year Built: ${formData.step2.yearBuilt}, Square Foot: ${formData.step2.squareFoot} Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}${formData.step2.unitNumber ? ", Unit Number: " + formData.step2.unitNumber : ""}`;
+    console.log("mainFlowLog-Initial lead description:", initialDescription);
 
+    // Prepare the payload for sending to Brivity
     const payload = {
       // primary_agent_id is now handled securely by the Lambda function
       lead_type: "lead from webpage trueprice report",
@@ -298,38 +325,44 @@ export function MainFlow() {
     const result = await sendLeadToBrivity(payload)
     if (result.success) {
         setLeadInfo({
-            email: formData.step3.email, // Use email from payload if available
-            initialDescription: ''
+            email: formData.step3.email, // Store the email for potential future updates
+            initialDescription: '' // Initial description is sent, clear it from leadInfo state
         })
-      setCurrentStep("results")
+      setCurrentStep("results") // Move to the Results page
+      console.log("mainFlowLog-Lead submitted successfully, transitioning to results.");
     } else {
       alert("Failed to submit lead. Please try again.")
+      console.error("mainFlowLog-Failed to submit lead.");
     }
   }
 
+  // Handler for updating the lead description in Brivity (e.g., from ResultsPage)
   const handleUpdateDescription = async (newDescriptionPart: string) => {
+    console.log("mainFlowLog-Attempting to update lead description with:", newDescriptionPart);
     if (leadInfo) {
       const payload = {
         // primary_agent_id is now handled securely by the Lambda function
-        email: leadInfo.email,
-        description: newDescriptionPart
+        email: leadInfo.email, // Use the stored email to identify the lead
+        description: newDescriptionPart // The new part of the description to add
       }
-      const result = await sendLeadToBrivity(payload, true)
+      const result = await sendLeadToBrivity(payload, true) // Call sendLeadToBrivity with isUpdate = true
       if (result.success) {
-        console.log("Description updated successfully.")
+        console.log("mainFlowLog-Description updated successfully.");
       } else {
-        console.error("Failed to update description.")
+        console.error("mainFlowLog-Failed to update description.");
       }
     } else {
-      console.warn("No lead info found to update description.")
+      console.warn("mainFlowLog-No lead info found to update description. Lead might not have been submitted yet.");
     }
   }
 
-  const goToStep2 = () => setCurrentStep("step2")
-  const goToStep3 = () => setCurrentStep("step3")
-  const goToStep1 = () => setCurrentStep("step1")
-  const goToStep2FromStep3 = () => setCurrentStep("step2")
+  // Navigation functions between steps
+  const goToStep2 = () => { console.log("mainFlowLog-Navigating to Step 2."); setCurrentStep("step2"); }
+  const goToStep3 = () => { console.log("mainFlowLog-Navigating to Step 3."); setCurrentStep("step3"); }
+  const goToStep1 = () => { console.log("mainFlowLog-Navigating to Step 1."); setCurrentStep("step1"); }
+  const goToStep2FromStep3 = () => { console.log("mainFlowLog-Navigating to Step 2 from Step 3."); setCurrentStep("step2"); }
 
+  // Render the appropriate component based on the current step
   switch (currentStep) {
     case "hero":
       return <HeroSection onAddressSubmit={handleAddressSubmit} />
@@ -353,7 +386,6 @@ export function MainFlow() {
         <Step2
           formData={formData}
           updateFormData={updateFormData}
-
           onNext={goToStep3}
           onPrevious={goToStep1}
           selectedAddress={formData.selectedAddress}
@@ -382,6 +414,7 @@ export function MainFlow() {
       return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} streetViewUrl={formData.streetViewUrl} /> // Pass streetViewUrl to ResultsPage
 
     default:
+      // Fallback to HeroSection if currentStep is an unrecognized value
       return <HeroSection onAddressSubmit={handleAddressSubmit} />
   }
 }
