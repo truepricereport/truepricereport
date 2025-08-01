@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
 import { useEffect, useState } from "react"
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleMap } from "@/components/GoogleMap"
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
@@ -74,10 +75,6 @@ export function Step1({
       zipcode: formData.step1?.zipcode || ""
     }
   })
-
-  // Watch all fields to reconstruct the full address.
-  const watchedFields = useWatch({ control });
-  console.log("Step1Log-Watched form fields:", watchedFields);
 
   // This effect populates the form when the initial data arrives.
   // It only runs when the core formData.step1 object changes, not on every selectedAddress change.
