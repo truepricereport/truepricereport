@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,7 @@ interface Step3Props {
   latitude?: number
   longitude?: number
   streetViewUrl?: string | null
+  sendLeadToBrivity: (payload: any) => Promise<any>; // Add sendLeadToBrivity prop
 }
 
 // Define the schema for Step3 form validation using Zod
@@ -35,23 +36,45 @@ const step3Schema = z.object({
     email: z.string().email({ message: 'Invalid email format' }),
 })
 
-export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl }: Step3Props) {
+export function Step3({ formData, updateFormData, onSubmit, onPrevious, selectedAddress, latitude, longitude, streetViewUrl, sendLeadToBrivity }: Step3Props) {
   // Initialize react-hook-form with Zod resolver and default values from formData
   const { register, handleSubmit, formState: { errors }, control } = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
-    defaultValues: {
+    defaultValues: useMemo(() => ({
       firstName: formData.step3?.firstName || "",
       lastName: formData.step3?.lastName || "",
       phone: formData.step3?.phone || "",
       email: formData.step3?.email || ""
-    }
+    }), [formData.step3])
   })
 
   // Handler for successful form submission
-  const handleValidSubmit = (data: z.infer<typeof step3Schema>) => {
+  const handleValidSubmit = async (data: z.infer<typeof step3Schema>) => {
     console.log("Step3 form valid and submitting data:", data);
     updateFormData({ step3: data })
-    onSubmit()
+
+    // Prepare the payload for sending to Brivity
+    const payload = {
+      // primary_agent_id is now handled securely by the Lambda function
+      lead_type: "lead from webpage trueprice report",
+      status: "new",
+      source: "TruepriceReport",
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      street_address: formData.step1.streetAddress,
+      city: formData.step1.city,
+      locality: formData.step1.state,
+      postal_code: formData.step1.zipcode,
+      country: formData.step1.country,
+      description: `Property Details - Bedrooms: ${formData.step2.beds}, Bathrooms: ${formData.step2.baths}, Year Built: ${formData.step2.yearBuilt}, Square Foot: ${formData.step2.squareFoot} Price Estimate: ${formData.step1.priceEstimate}, Low Estimate: ${formData.step1.lowEstimate}, High Estimate: ${formData.step1.highEstimate}${formData.step2.unitNumber ? ", Unit Number: " + formData.step2.unitNumber : ""}`
+    }
+
+    // Send lead data to Brivity asynchronously
+    sendLeadToBrivity(payload);
+
+    onSubmit(); // Transition to the Results page immediately
     console.log("Step3 data updated and proceeding to final submission.");
   }
 
