@@ -198,6 +198,7 @@ export function MainFlow() {
   // Handler for submitting Step 1 data (address confirmation)
   const handleStep1NextSubmit = async (addressData: FormData['step1']) => {
     console.log("mainFlowLog-Attempting to fetch property info for Step 1 CONFIRM button:", addressData);
+    console.log("mainFlowLog-streetAddress from Step 1 CONFIRM button:", addressData.streetAddress);
     
     // Immediately transition to Step 2, to provide a faster user experience
     goToStep2();

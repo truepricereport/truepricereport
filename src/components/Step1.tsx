@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-'use client'
+"use client"
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
@@ -138,6 +138,14 @@ export function Step1({
           });
           updateSelectedAddress(fullAddress);
           console.log("Step1Log-Address updated with new coordinates and Street View URL.");
+
+          // Update formData.step1 with the new address values
+          updateFormData({
+            step1: {
+              ...values,
+            },
+          });
+
         } else {
           console.error("Step1Log-Geocoding failed:", status, results);
           alert('Could not verify the address. Please check the details and try again.');
@@ -156,15 +164,13 @@ export function Step1({
     const fullAddress = `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipcode}, ${data.country}`;
     console.log("Step1Log-Full address to update selectedAddress:", fullAddress);
 
-    // Update the selectedAddress state in the parent component
-    updateSelectedAddress(fullAddress);
-
     // Reconstruct the final address from form data to ensure it's up-to-date
     const finalAddress = {
       ...data,
       streetAddress: `${data.streetAddress}${data.unitNumber ? ` #${data.unitNumber}` : ''}`
     }
     console.log("Step1Log-Final address object for submission:", finalAddress);
+    console.log("Step1Log-Final streetAddress for submission:", finalAddress.streetAddress);
     
     onStep1NextSubmit(finalAddress);
     updateFormData({ step1: finalAddress });
