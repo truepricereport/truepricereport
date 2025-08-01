@@ -228,6 +228,7 @@ export function MainFlow() {
 
       const data = await response.json();
       console.log("mainFlowLog-CoreLogic API Response via Proxy:", data);
+      console.log("MainFlowLog - CoreLogic API response.status:", response.status);
 
       let unitNumbers: string[] = []; // Initialize unitNumbers
       let priceEstimate: string | undefined;
@@ -412,6 +413,7 @@ export function MainFlow() {
       )
 
     case "results":
+      console.log("MainFlowLog - Rendering ResultsPage with streetViewURL:", formData.streetViewUrl);
       return <ResultsPage formData={formData} onUpdateDescription={handleUpdateDescription} streetViewUrl={formData.streetViewUrl} /> // Pass streetViewUrl to ResultsPage
 
     default:

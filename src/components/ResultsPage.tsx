@@ -70,6 +70,7 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
     // State variables for managing the message popup and button click states
     const [showMessagePopup, setShowMessagePopup] = useState(false)
+    const [buttonMessage, setButtonMessage] = useState('')
     const [cashOfferClicked, setCashOfferClicked] = useState(false);
     const [refinanceClicked, setRefinanceClicked] = useState(false);
     const [contactAgentClicked, setContactAgentClicked] = useState(false);
@@ -102,11 +103,12 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
     // Function to handle sending the combined message via onUpdateDescription prop
     const handleSendMessage = (message: string) => {
         console.log("Sending message to update description:", message);
-        onUpdateDescription(message);
+        onUpdateDescription(`${buttonMessage} ${message}`);
         setShowMessagePopup(false);
         console.log("Message sent and popup closed.");
     }
-
+console.log("ResultsPage - showMessagePopup:", showMessagePopup);
+console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.step1.valuationStatusAvailable);
     return (
         <div
             className="min-h-[80vh] py-16 px-6 bg-cover bg-center"
@@ -171,44 +173,44 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                             </div>
                         )}
 
-                        {/* Conditionally render action buttons if valuation is available */}
-                        {formData.step1.valuationStatusAvailable === true && (
-                            <div className="space-y-3">
-                                <Button
-                                    className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                                    onClick={() => {
-                                        console.log("Get a Cash Offer button clicked.");
-                                        onUpdateDescription("I am interested in getting a Cash Offer.");
-                                        setCashOfferClicked(true);
-                                    }}
-                                    disabled={cashOfferClicked}
-                                >
-                                    Get a Cash Offer
-                                </Button>
-                                <Button
-                                    className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
-                                    onClick={() => {
-                                        console.log("Refinance button clicked.");
-                                        onUpdateDescription("I am interested in Refinancing.");
-                                        setRefinanceClicked(true);
-                                    }}
-                                    disabled={refinanceClicked}
-                                >
-                                    Refinance
-                                </Button>
-                                <Button
-                                    className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
-                                    onClick={() => {
-                                        console.log("Contact Real Estate Agent button clicked.");
-                                        onUpdateDescription("I am interested in contacting a Real Estate Agent.");
-                                        setContactAgentClicked(true);
-                                    }}
-                                    disabled={contactAgentClicked}
-                                >
-                                    Contact Real Estate Agent
-                                </Button>
-                            </div>
-                        )}
+                                                {/* Conditionally render action buttons if valuation is available */}
+                                                {formData.step1.valuationStatusAvailable === true && (
+                                                    <div className="space-y-3">
+                                                        <Button
+                                                            className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                                                            onClick={() => {
+                                                                setButtonMessage("I am interested in getting a Cash Offer.");
+                                                                setShowMessagePopup(true);
+                                                                setCashOfferClicked(true);
+                                                            }}
+                                                            disabled={cashOfferClicked}
+                                                        >
+                                                            Get a Cash Offer
+                                                        </Button>
+                                                        <Button
+                                                            className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
+                                                            onClick={() => {
+                                                                setButtonMessage("I am interested in Refinancing.");
+                                                                setShowMessagePopup(true);
+                                                                setRefinanceClicked(true);
+                                                            }}
+                                                            disabled={refinanceClicked}
+                                                        >
+                                                            Refinance
+                                                        </Button>
+                                                        <Button
+                                                            className="w-full bg-[#2ec481] hover:bg-[#26a46b] text-white py-3 rounded-md font-medium"
+                                                            onClick={() => {
+                                                                setButtonMessage("I am interested in contacting a Real Estate Agent.");
+                                                                setShowMessagePopup(true);
+                                                                setContactAgentClicked(true);
+                                                            }}
+                                                            disabled={contactAgentClicked}
+                                                        >
+                                                            Contact Real Estate Agent
+                                                        </Button>
+                                                    </div>
+                                                )}
                     </div>
                 </div>
 
@@ -275,13 +277,13 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
                 </div>
 
                 {/* Message Popup Component (conditionally rendered) */}
-                {showMessagePopup && (formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) && (
+                {showMessagePopup && (
                     <MessagePopup
                         onUpdateDescription={handleSendMessage}
-                        popupTitle={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) ? 'Contact Us For Personalized Valuation' : 'Send a Message'}
+                        popupTitle={formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null ? 'Contact Us For Personalized Valuation' : 'Send a Message'}
                         onClose={closeMessagePopup}
-                        defaultMessage={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null) ? 'I am interested in a personalized valuation.' : ''}
-                        isValuationUnavailable={(formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null)}
+                        defaultMessage={formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null ? 'I am interested in a personalized valuation.' : ''}
+                        isValuationUnavailable={formData.step1.valuationStatusAvailable === false || formData.step1.valuationStatusAvailable === null}
                     />
                 )}
             </div>
