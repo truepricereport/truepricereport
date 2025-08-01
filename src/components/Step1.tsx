@@ -201,6 +201,7 @@ export function Step1({
         {/* Google Map component to display the address location */}
         <div className="mb-8">
           <GoogleMap
+            key={selectedAddress}
             address={selectedAddress}
             latitude={latitude}
             longitude={longitude}
