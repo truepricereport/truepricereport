@@ -148,7 +148,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
                             </div>
                         ) : (
                             <div className="mb-8 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 text-xl font-semibold">
-                                Valuation unavailable through standard tools. This property requires manual analysis — contact us for a personalized valuation.\n
+                                Valuation unavailable through standard tools. This property requires manual analysis — contact us for a personalized valuation.
                             </div>
                         )}
 
