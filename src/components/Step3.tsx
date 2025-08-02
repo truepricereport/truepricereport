@@ -193,7 +193,7 @@ export function Step3({ formData, updateFormData, onSubmit, onPrevious, selected
         </form>
 
         {/* Navigation buttons */}
-        <div className="flex gap-4 mt-8">
+        <div className="flex flex-wrap gap-4 mt-8">
           <Button
             onClick={() => { console.log("Previous button clicked in Step3."); onPrevious(); }}
             variant="outline"

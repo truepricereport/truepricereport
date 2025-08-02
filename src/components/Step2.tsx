@@ -219,7 +219,7 @@ export function Step2({ formData, updateFormData, onNext, onPrevious, selectedAd
           )}
         </form>
 
-        <div className="flex gap-4 mt-8">
+        <div className="flex flex-wrap gap-4 mt-8">
           <Button
             onClick={onPrevious}
             variant="outline"
