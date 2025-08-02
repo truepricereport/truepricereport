@@ -339,24 +339,16 @@ export function MainFlow() {
   }
 
   // Handler for updating the lead description in Brivity (e.g., from ResultsPage)
-  const handleUpdateDescription = async (newDescriptionPart: string) => {
+  const handleUpdateDescription = (newDescriptionPart: string) => {
     console.log("handleUpdateDescription-mainFlowLog-Attempting to update lead description with:", newDescriptionPart);
-    if (leadInfo) {
-      const payload = {
-        // primary_agent_id is now handled securely by the Lambda function
-        email: leadInfo.email, // Use the stored email to identify the lead
-        description: newDescriptionPart // The new part of the description to add
-      }
-      const result = await sendLeadToBrivity(payload, true) // Call sendLeadToBrivity with isUpdate = true
-      if (result.success) {
-        console.log("handleUpdateDescription-mainFlowLog-Description updated successfully.");
-      } else {
-        console.error("handleUpdateDescription-mainFlowLog-Failed to update description.");
-      }
-    } else {
-      console.warn("handleUpdateDescription-mainFlowLog-No lead info found to update description. Lead might not have been submitted yet.");
-    }
-  }
+
+    const payload = {
+      // primary_agent_id is now handled securely by the Lambda function
+      email: formData.step3.email, // Use the email from formData
+      description: newDescriptionPart // The new part of the description to add
+    };
+    sendLeadToBrivity(payload, true);
+  };
 
   // Navigation functions between steps
   const goToStep2 = () => { console.log("goToStep2-mainFlowLog-Navigating to Step 2."); setCurrentStep("step2"); }
