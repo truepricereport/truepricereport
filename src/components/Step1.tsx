@@ -11,6 +11,7 @@ import { TraditionalAutocomplete } from "@/components/AddressAutocomplete"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { PlaceDetails } from "../types/index";
 
 // Define the props for the Step1 component
 interface Step1Props {
