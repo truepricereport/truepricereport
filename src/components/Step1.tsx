@@ -263,7 +263,7 @@ export function Step1({
             <TraditionalAutocomplete
               id="streetAddress"
               onAddressSelect={handleAutocompleteSelect}
-              placeholder="Enter or confirm your home address"
+              placeholder="Update or confirm your home address"
               className="w-full h-12 px-4 text-base border border-gray-300 rounded-md outline-none transition-all focus:border-green-600 focus:ring-2 focus:ring-green-600/20 mt-1"
                // We don't use {...register} directly on TraditionalAutocomplete.
             />

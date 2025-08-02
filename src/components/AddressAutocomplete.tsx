@@ -149,7 +149,7 @@ export function TraditionalAutocomplete({
       ref={inputRef}
       type="text"
       placeholder={placeholder}
-      className={`w-full h-12 px-4 text-base border border-gray-300 rounded-md outline-none transition-all focus:border-green-600 focus:ring-2 focus:ring-green-600/20 ${className || ''}`}
+      className={`w-full h-9 py-2 px-3 text-sm border border-gray-300 rounded-md outline-none transition-all focus:border-green-600 focus:ring-2 focus:ring-green-600/20 bg-transparent ${className || ''} box-border`}
       aria-autocomplete="list"
       role="combobox"
       autoComplete="off"
