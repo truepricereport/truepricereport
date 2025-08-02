@@ -114,7 +114,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
             className="min-h-[80vh] py-16 px-6 bg-cover bg-center"
             style={{ backgroundImage: `url('https://truepricereport.s3.us-west-1.amazonaws.com/Homepagetruepricereportimage.jpeg')` }}
         >
-            <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg">
+            <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg flex flex-wrap justify-center">
                 <div className="mb-8">
                     <Image
                         src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
@@ -152,7 +152,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
                     </div>
                 ) : null}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="flex flex-wrap justify-center gap-8">
                     {/* Home Value Card Section */}
                     <div className="bg-white rounded-2xl p-8 shadow-lg">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -175,7 +175,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
 
                                                 {/* Conditionally render action buttons if valuation is available */}
                                                 {formData.step1.valuationStatusAvailable === true && (
-                                                    <div className="space-y-3">
+                                                    <div className="flex flex-wrap justify-center gap-3">
                                                         <Button
                                                             className="w-full bg-[#2ec481] hover:bg-[#26a86b] text-white py-3 rounded-md font-medium"
                                                             onClick={() => {
@@ -218,7 +218,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
                 <div className="mt-8 bg-white rounded-2xl p-8 shadow-lg">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
                     <p className="mb-4">Some properties require enhanced valuation tools due to unique characteristics or market activity. Contact us to learn more.</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div className="flex flex-wrap justify-center gap-4">
                         {formData.step2.beds && (
                             <div className="bg-gray-50 rounded-lg p-4 text-center">
                                 <div className="text-2xl font-bold text-[#0f6c0c]">{formData.step2.beds}</div>
