@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { GoogleMap } from "@/components/GoogleMap"
 import { MessagePopup } from './MessagePopup'
 
 // Define the structure of the form data passed to ResultsPage
@@ -53,8 +52,6 @@ export function ResultsPage({ formData, onUpdateDescription, streetViewUrl }: Re
 
     const firstName = formData.step3?.firstName || "Friend"
     const address = formData.step1?.streetAddress || "Your Property"
-    const latitude = formData?.latitude // Keep for GoogleMap component
-    const longitude = formData?.longitude // Keep for GoogleMap component
 
     // Determine the appropriate greeting based on the current time
     const currentHour = new Date().getHours()
@@ -114,47 +111,29 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
             className="min-h-[80vh] py-16 px-6 bg-cover bg-center"
             style={{ backgroundImage: `url('https://truepricereport.s3.us-west-1.amazonaws.com/Homepagetruepricereportimage.jpeg')` }}
         >
-            <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg flex flex-wrap justify-center">
-                <div className="mb-8">
-                    <Image
-                        src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
-                        alt="True Price Report"
-                        width={200}
-                        height={60}
-                    />
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        {greeting} {firstName}
-                    </h1>
-                    <p className="text-lg text-gray-700 mb-2">
-                        Below is the TruePriceReport for:
-                    </p>
-                    <p className="text-xl font-semibold text-gray-900">
-                        {address}
-                    </p>
-                </div>
-
-                {/* Static Street View Image - Display here if available */}
-                 {streetViewUrl && (
+            <div className="max-w-6xl mx-auto bg-white bg-opacity-90 rounded-2xl p-8 shadow-lg flex flex-wrap justify-center gap-8">
+                {/* New container for logo, greeting, text, and value section */}
+                <div className="flex flex-col items-center md:items-start">
                     <div className="mb-8">
-                        <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md" />
-                    </div>
-                )}
-
-                {/* Conditionally render Google Map if valuation is available */}
-                {formData.step1.valuationStatusAvailable === true ? (
-                    <div className="mb-8">
-                        <GoogleMap
-                            address={formData.selectedAddress}
-                            latitude={latitude}
-                            longitude={longitude}
-                            className="shadow-md"
+                        <Image
+                            src="https://truepricereport.s3.us-west-1.amazonaws.com/truepricereportlogo.png"
+                            alt="True Price Report"
+                            width={200}
+                            height={60}
                         />
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                            {greeting} {firstName}
+                        </h1>
+                        <p className="text-lg text-gray-700 mb-2">
+                            Below is the TruePriceReport for:
+                        </p>
+                        <p className="text-xl font-semibold text-gray-900">
+                            {address}
+                        </p>
                     </div>
-                ) : null}
 
-                <div className="flex flex-wrap justify-center gap-8">
                     {/* Home Value Card Section */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg">
+                    <div className="bg-white rounded-2xl p-8 shadow-lg w-full"> {/* Added w-full to take full width within flex item */}
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
                             Your Home value {formData.step1.valuationStatusAvailable === true ? "(Estimated)" : ""}
                         </h2>
@@ -169,7 +148,7 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
                             </div>
                         ) : (
                             <div className="mb-8 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 text-xl font-semibold">
-                                Valuation unavailable through standard tools. This property requires manual analysis — contact us for a personalized valuation.
+                                Valuation unavailable through standard tools. This property requires manual analysis — contact us for a personalized valuation.\n
                             </div>
                         )}
 
@@ -212,6 +191,15 @@ console.log("ResultsPage - formData.step1.valuationStatusAvailable:", formData.s
                                                     </div>
                                                 )}
                     </div>
+                
+
+                {/* Static Street View Image - Display here if available */}
+                {streetViewUrl && (
+                    <div className="mb-8 w-full md:w-auto flex-grow"> {/* Added w-full and md:w-auto and flex-grow */}
+                        <img src={streetViewUrl} alt="Street View of the address" className="shadow-md rounded-md w-full h-auto object-cover" /> {/* Added w-full, h-auto, object-cover */}
+                    </div>
+                )}
+
                 </div>
 
                 {/* Property Details Section */}
