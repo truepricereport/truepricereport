@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleMap } from "@/components/GoogleMap"
+import { TraditionalAutocomplete } from "@/components/AddressAutocomplete"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -19,6 +20,7 @@ interface Step1Props {
   selectedAddress: string
   updateSelectedAddress: (address: string) => void
   onStep1NextSubmit: (addressData: any) => void
+  placeDetails?: PlaceDetails
   latitude?: number
   longitude?: number
   streetViewUrl?: string | null
@@ -54,6 +56,7 @@ export function Step1({
   updateSelectedAddress,
   onStep1NextSubmit,
   latitude,
+  placeDetails,
   longitude,
   streetViewUrl,
   onAddressUpdate,
@@ -80,12 +83,27 @@ export function Step1({
   // It only runs when the core formData.step1 object changes, not on every selectedAddress change.
   useEffect(() => {
     console.log("Step1Log-formData.step1 changed, updating form values:", formData.step1);
-    setValue('streetAddress', formData.step1.streetAddress || selectedAddress || "");
-    setValue('city', formData.step1.city || "");
-    setValue('state', formData.step1.state || "");
-    setValue('zipcode', formData.step1.zipcode || "");
-    setValue('country', formData.step1.country || "USA");
-  }, [formData.step1, setValue, selectedAddress]);
+    // Prioritize formData if available, otherwise use selectedAddress/placeDetails
+    if (formData.step1 && Object.keys(formData.step1).length > 0) {
+      setValue('streetAddress', formData.step1.streetAddress || "");
+      setValue('unitNumber', formData.step1.unitNumber || "");
+      setValue('city', formData.step1.city || "");
+      setValue('state', formData.step1.state || "");
+      setValue('zipcode', formData.step1.zipcode || "");
+      setValue('country', formData.step1.country || "USA");
+    } else if (placeDetails) {
+       // Construct streetAddress from components, handling potential unit number
+      const streetAddress = `${placeDetails.streetNumber} ${placeDetails.route}${placeDetails.unitNumber ? ` #${placeDetails.unitNumber}` : ''}`;
+      setValue('streetAddress', streetAddress);
+      setValue('unitNumber', placeDetails.unitNumber || "");
+      setValue('city', placeDetails.city || "");
+      setValue('state', placeDetails.state || "");
+      setValue('zipcode', placeDetails.zipcode || "");
+      setValue('country', placeDetails.country || "USA");
+    } else {
+       setValue('streetAddress', selectedAddress || "");
+    }
+  }, [formData.step1, setValue, selectedAddress, placeDetails]);
 
   // Handler for verifying the address using Google Geocoding API
   const handleVerifyAddress = async () => {
@@ -157,6 +175,24 @@ export function Step1({
     }
   };
 
+  // Handler for when an address is selected from the Autocomplete
+  const handleAutocompleteSelect = (address: string, placeDetails?: PlaceDetails) => {
+    console.log("Step1Log-Autocomplete selected:", address, placeDetails);
+    updateSelectedAddress(address); // Update the main selectedAddress state
+
+    if (placeDetails) {
+      // Populate form fields with details from autocomplete
+      const streetAddress = `${placeDetails.streetNumber} ${placeDetails.route}${placeDetails.unitNumber ? ` #${placeDetails.unitNumber}` : ''}`;
+      setValue('streetAddress', streetAddress);
+      setValue('unitNumber', placeDetails.unitNumber || "");
+      setValue('city', placeDetails.city || "");
+      setValue('state', placeDetails.state || "");
+      setValue('zipcode', placeDetails.zipcode || "");
+      setValue('country', placeDetails.country || "USA");
+      handleVerifyAddress(); // Trigger address verification
+    }
+  };
+
   // Handler for proceeding to the next step
   const handleNext = async (data: z.infer<typeof step1Schema>) => {
     console.log("Step1Log-Proceeding to next step with form data:", data);
@@ -223,10 +259,12 @@ export function Step1({
               Street Address
               {errors.streetAddress && <span className="text-gray-500">*</span>}
             </Label>
-            <Input
+            <TraditionalAutocomplete
               id="streetAddress"
-              className="mt-1"
-              {...register("streetAddress")}
+              onAddressSelect={handleAutocompleteSelect}
+              placeholder="Enter or confirm your home address"
+              className="w-full h-12 px-4 text-base border border-gray-300 rounded-md outline-none transition-all focus:border-green-600 focus:ring-2 focus:ring-green-600/20 mt-1"
+               // We don't use {...register} directly on TraditionalAutocomplete.
             />
             {errors.streetAddress && <p className="text-red-500 text-sm mt-1">{errors.streetAddress.message}</p>}
           </div>
