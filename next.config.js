@@ -16,6 +16,7 @@ const nextConfig = {
       },
     ],
   },
+  basePath: '/truepricereport',
 };
 
 module.exports = nextConfig;
