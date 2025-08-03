@@ -153,6 +153,8 @@ export function TraditionalAutocomplete({
       aria-autocomplete="list"
       role="combobox"
       autoComplete="off"
+      aria-controls={undefined}
+      aria-expanded={false}
       id={id}
     />
   )
