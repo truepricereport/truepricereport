@@ -1,47 +1,73 @@
-name: CI/CD
+# Workflow name
+name: Next.js CI/CD to GitHub Pages
 
+# Trigger the workflow on push events
 on:
   push:
     branches:
-      - main # Or your default branch
+      # Specify the branch you want to trigger the workflow on, e.g., main
+      - main
 
+# Define the jobs to be executed
 jobs:
+  # Build job
   build:
+    # Run on the latest Ubuntu environment
     runs-on: ubuntu-latest
+
+    # Steps for the build job
     steps:
+      # Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Set up Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use your preferred Node.js version
+          node-version: '20' # Specify your Node.js version
 
+      # Install project dependencies
       - name: Install dependencies
-        run: npm ci # Use your preferred package manager command (npm ci, yarn install, pnpm install)
+        run: npm ci # Use npm ci for clean install in CI environments
 
+      # Build the Next.js project
       - name: Build Next.js project
-        run: npm run build # Use your build command
+        run: npm run build # Your build command
         env:
+          # Inject environment variables from GitHub Secrets
           NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
           NEXT_PUBLIC_AWS_API_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_AWS_API_GATEWAY_URL }}
           NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL }}
 
-      - name: Upload artifact
+      # Upload the build artifact for deployment
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out # The directory containing the build output
+          # The directory containing the build output (usually 'out' for static export)
+          path: ./out
 
+  # Deploy job
   deploy:
+    # This job depends on the build job completing successfully
+    needs: build
+
+    # Run on the latest Ubuntu environment
+    runs-on: ubuntu-latest
+
+    # Environment for deployment (required for deploy-pages action)
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
+
+    # Permissions required for the deploy-pages action
     permissions:
-      pages: write      # Set the permissions for the GitHub Pages deployment
-      id-token: write   # Set the permissions for the GitHub Pages deployment
+      pages: write # Permission to write to the gh-pages branch
+      id-token: write # Permission to fetch the OIDC token
+
+    # Steps for the deploy job
     steps:
+      # Deploy the uploaded artifact to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
