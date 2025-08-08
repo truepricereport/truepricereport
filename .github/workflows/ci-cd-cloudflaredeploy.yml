@@ -1,5 +1,5 @@
 # Workflow name
-name: Next.js CI/CD to GitHub Pages
+name: Next.js CI/CD to GitHub Pages and Cloudflare Pages
 
 # Trigger the workflow on push events
 on:
@@ -41,14 +41,21 @@ jobs:
           NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL }}
 
       # Upload the build artifact for deployment
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact (for GitHub Pages)
         uses: actions/upload-pages-artifact@v3
         with:
           # The directory containing the build output (usually 'out' for static export)
           path: ./out
 
-  # Deploy job
-  deploy:
+      # Upload the build artifact for Cloudflare Pages
+      - name: Upload artifact (for Cloudflare Pages)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-pages-artifact
+          path: ./out
+
+  # Deploy to GitHub Pages job
+  deploy-github-pages:
     # This job depends on the build job completing successfully
     needs: build
 
@@ -71,3 +78,30 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Deploy to Cloudflare Pages job
+  deploy-cloudflare-pages:
+    # This job depends on the build job completing successfully
+    needs: build
+
+    # Run on the latest Ubuntu environment
+    runs-on: ubuntu-latest
+
+    # Get the artifact from the build job
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: cloudflare-pages-artifact
+
+    # Steps for the deploy job
+    steps:
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_ACCESS_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # The name of your Cloudflare Pages project
+          projectName: truepricereport # <--- Replaced with your project name
+          directory: . # The directory containing your build output (the downloaded artifact)
+          # Optionally, specify the Cloudflare Zone ID if needed for your setup
+          # zoneId: ${{ secrets.CLOUDFLARE_ZONE_ID }}
