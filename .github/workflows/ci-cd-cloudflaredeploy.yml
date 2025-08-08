@@ -38,7 +38,7 @@ jobs:
           # Inject environment variables from GitHub Secrets
           NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
           NEXT_PUBLIC_AWS_API_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_AWS_API_GATEWAY_URL }}
-          NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL }}
+          NEXT_PUBLIC_CORELOGIC_API_GATEWAY_URL: ${{ secrets.PUBLIC_CORELOGIC_API_GATEWAY_URL }}
 
       # Upload the build artifact for deployment
       - name: Upload Pages artifact (for GitHub Pages)
@@ -87,21 +87,20 @@ jobs:
     # Run on the latest Ubuntu environment
     runs-on: ubuntu-latest
 
-    # Get the artifact from the build job
+    # Steps for the deploy job
+    steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: cloudflare-pages-artifact
 
-    # Steps for the deploy job
-    steps:
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_ACCESS_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # The name of your Cloudflare Pages project
-          projectName: truepricereport # <--- Replaced with your project name
-          directory: . # The directory containing your build output (the downloaded artifact)
-          # Optionally, specify the Cloudflare Zone ID if needed for your setup
-          # zoneId: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+    - name: Publish to Cloudflare Pages
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_ACCESS_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # The name of your Cloudflare Pages project
+        projectName: truepricereport
+        directory: .
+        # Optionally, specify the Cloudflare Zone ID if needed for your setup
+        # zoneId: ${{ secrets.CLOUDFLARE_ZONE_ID }}
