@@ -97,7 +97,7 @@ jobs:
     - name: Publish to Cloudflare Pages
       uses: cloudflare/pages-action@v1
       with:
-        apiToken: ${{ secrets.CLOUDFLARE_API_ACCESS_TOKEN }}
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         # The name of your Cloudflare Pages project
         projectName: truepricereport
