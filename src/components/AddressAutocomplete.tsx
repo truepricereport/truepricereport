@@ -31,19 +31,12 @@ export function TraditionalAutocomplete({
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
-        // Define initMap globally if not already defined
-        if (!window.initMap) {
-          window.initMap = () => {
-            console.log("Google Maps loaded successfully")
-          }
-        }
-
         // Load Google Maps script if not already loaded
         if (!window.google?.maps?.places) {
           const existingScript = document.querySelector('script[src*="maps.googleapis.com"]') as HTMLScriptElement | null
           if (!existingScript) {
-            const script = document.createElement('script')
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initMap`
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
             script.async = true
             scriptRef.current = script
             document.head.appendChild(script)
@@ -126,7 +119,7 @@ export function TraditionalAutocomplete({
         alert('Failed to initialize traditional autocomplete. Please check your internet connection and API key.')
         console.error('Failed to initialize traditional autocomplete:', error)
       }
-    }
+    };
 
     initializeAutocomplete()
 
