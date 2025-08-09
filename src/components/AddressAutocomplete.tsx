@@ -41,80 +41,80 @@ export function TraditionalAutocomplete({
             scriptRef.current = script
             document.head.appendChild(script)
             await new Promise<void>((resolve, reject) => {
-              script.onload = () => resolve()
+              script.onload = () => {
+                console.log('Google Maps script loaded') // Add this line
+                resolve()
+              }
               script.onerror = () => reject(new Error("Failed to load Google Maps script"))
             })
           }
         }
 
-        // Wait for Google Maps to fully load
-        await new Promise(resolve => setTimeout(resolve, 100))
+        // Google Maps availability check and Autocomplete initialization
+        if (window.google?.maps?.places?.Autocomplete && inputRef.current) {
+          console.log('Initializing Autocomplete') // Add this line
+          const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+            componentRestrictions: { country: 'us' },
+            fields: ['address_components', 'formatted_address', 'geometry', 'name']
+          })
 
-        // Check if Google Maps Places is available
-        if (!window.google?.maps?.places?.Autocomplete || !inputRef.current) {
-          throw new Error("Google Maps Places library not available or input not mounted")
+          autocompleteRef.current = autocomplete
+
+          // Add Las Vegas bias
+          const lasVegasBounds = new window.google.maps.LatLngBounds(
+            new window.google.maps.LatLng(36.0219, -115.3129),
+            new window.google.maps.LatLng(36.3179, -114.9669)
+          )
+          autocomplete.setBounds(lasVegasBounds)
+
+          // Listen for place selection
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace()
+
+            if (!place || !place.address_components) {
+              alert('No place selected or incomplete data')
+              return
+            }
+
+            const address = place.formatted_address || place.name || ''
+
+            // Extract address components
+            const getComponent = (type: string) => {
+              const component = place.address_components?.find(comp =>
+                comp.types.includes(type)
+              )
+              return component?.long_name || ""
+            }
+
+            // New function to extract unit number
+            const getUnitNumber = () => {
+              const component = place.address_components?.find(comp =>
+                comp.types.includes("subpremise")
+              )
+              return component?.long_name || ""
+            }
+
+            const detailedAddress: PlaceDetails = {
+              fullAddress: address,
+              streetNumber: getComponent("street_number"),
+              unitNumber: getUnitNumber(), // Added unitNumber
+              route: getComponent("route"),
+              city: getComponent("locality") || getComponent("administrative_area_level_2"),
+              state: getComponent("administrative_area_level_1"),
+              country: getComponent("country"),
+              zipcode: getComponent("postal_code"),
+              latitude: place.geometry?.location?.lat(),
+              longitude: place.geometry?.location?.lng()
+            }
+
+            console.log('Selected place from traditional autocomplete:', detailedAddress)
+            onAddressSelect(address, detailedAddress)
+          })
+
+          console.log('Traditional Google Places Autocomplete initialized')
+        } else {
+          console.warn('Google Maps Places Autocomplete not available, check API key and libraries')
         }
-
-        // Create the autocomplete instance
-        const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-          componentRestrictions: { country: 'us' },
-          fields: ['address_components', 'formatted_address', 'geometry', 'name']
-        })
-
-        autocompleteRef.current = autocomplete
-
-        // Add Las Vegas bias
-        const lasVegasBounds = new window.google.maps.LatLngBounds(
-          new window.google.maps.LatLng(36.0219, -115.3129),
-          new window.google.maps.LatLng(36.3179, -114.9669)
-        )
-        autocomplete.setBounds(lasVegasBounds)
-
-        // Listen for place selection
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace()
-
-          if (!place || !place.address_components) {
-            alert('No place selected or incomplete data')
-            return
-          }
-
-          const address = place.formatted_address || place.name || ''
-
-          // Extract address components
-          const getComponent = (type: string) => {
-            const component = place.address_components?.find(comp =>
-              comp.types.includes(type)
-            )
-            return component?.long_name || ""
-          }
-
-          // New function to extract unit number
-          const getUnitNumber = () => {
-            const component = place.address_components?.find(comp =>
-              comp.types.includes("subpremise")
-            )
-            return component?.long_name || ""
-          }
-
-          const detailedAddress: PlaceDetails = {
-            fullAddress: address,
-            streetNumber: getComponent("street_number"),
-            unitNumber: getUnitNumber(), // Added unitNumber
-            route: getComponent("route"),
-            city: getComponent("locality") || getComponent("administrative_area_level_2"),
-            state: getComponent("administrative_area_level_1"),
-            country: getComponent("country"),
-            zipcode: getComponent("postal_code"),
-            latitude: place.geometry?.location?.lat(),
-            longitude: place.geometry?.location?.lng()
-          }
-
-          console.log('Selected place from traditional autocomplete:', detailedAddress)
-          onAddressSelect(address, detailedAddress)
-        })
-
-        console.log('Traditional Google Places Autocomplete initialized')
       } catch (error) {
         alert('Failed to initialize traditional autocomplete. Please check your internet connection and API key.')
         console.error('Failed to initialize traditional autocomplete:', error)
